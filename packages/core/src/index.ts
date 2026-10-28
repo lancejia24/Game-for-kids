@@ -41,3 +41,6 @@ export type {AudioAsset,AudioManifest,AudioProvenance} from './audioLibrary.ts';
 
 export {STARTER_PATH,blankProgress,mastered,recommendedLesson,recordAttempt,attemptFromState,safeRestoreProgress} from './pathways.ts';
 export type {PathStage,LearningMode,LessonPathItem,MasteryRecord,LearningProgress} from './pathways.ts';
+
+export {CURRICULUM_CANDIDATES,getCurriculumCandidate} from './curriculumCandidates.ts';
+export type {CurriculumCandidate} from './curriculumCandidates.ts';
