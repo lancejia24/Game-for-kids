@@ -121,7 +121,7 @@ export function WebGame(){
    {state.selected&&state.slots.includes(state.selected)?<div className="tool-actions"><button className="tool-button" onClick={()=>change({kind:'return',tileId:state.selected!})}>Return selected letter</button></div>:null}
    <div className="feedback" role="status">{feedback}</div>
    <div className="tool-actions">
-    <button className="tool-button" onClick={()=>{const text=state.hints===0?'The word begins with '+lesson.word[0]+'.':nextHint(state);setFeedback(text);if(narration.enabled)narration.play(lesson.word+':hint:'+Math.min(3,state.hints));change({kind:'hint'});}}>Hint</button>
+    <button className="tool-button" onClick={()=>{const text=nextHint(state);setFeedback(text);if(narration.enabled)narration.play(lesson.word+':hint:'+Math.min(3,state.hints));change({kind:'hint'});}}>Hint</button>
     <button className="tool-button" disabled={!state.history.length} onClick={()=>change({kind:'undo'})}>Undo</button>
     <button className="tool-button" onClick={()=>change({kind:'reset'})}>Reset tiles</button>
     <button className="button primary" disabled={state.slots.some(slot=>slot===null)} onClick={check}>Check word</button>

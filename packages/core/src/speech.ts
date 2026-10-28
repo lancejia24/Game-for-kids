@@ -29,9 +29,9 @@ for(const spec of wordSpecs){
   single(word+':phonics',spec.phonics),
   single(word+':meaning',spec.meaning),
   single(word+':spell','Spell '+word.toLowerCase()+' using the letter tiles.'),
-  single(word+':hint:0','Listen to the word again.'),
-  single(word+':hint:1','Pay attention to the first sound.'),
-  single(word+':hint:2','The word starts with the letter '+spec.first+'.'),
+  {id:word+':hint:0',text:'Replay the word and listen carefully. '+word.toLowerCase()+'.',parts:[{text:'Replay the word and listen carefully. '},{text:word.toLowerCase(),ipa:spec.ipa},{text:'.'}],reviewStatus:'development'},
+  single(word+':hint:1','Look at the first sound and letter.'),
+  single(word+':hint:2','The word begins with '+spec.first+'.'),
   {id:word+':hint:3',text:'The word is '+word.toLowerCase()+'.',parts:[{text:'The word is '},{text:word.toLowerCase(),ipa:spec.ipa},{text:'.'}],reviewStatus:'development'},
  );
  // Ensure each prompt retains an explicit spoken IPA word instead of reading slash notation.
