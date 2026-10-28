@@ -9,7 +9,13 @@
   "scripts": {
     "test": "npm run test -w @wordpath/core",
     "typecheck": "npm run typecheck -w @wordpath/core",
+    "build": "npm run build:web",
     "build:web": "npm run build -w @wordpath/web",
     "dev:web": "npm run dev -w @wordpath/web"
+  },
+  "dependencies": {
+    "next": "16.4.3",
+    "react": "19.2.0",
+    "react-dom": "19.2.0"
   }
 }

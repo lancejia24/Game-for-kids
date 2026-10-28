@@ -1,7 +1,7 @@
 name: WordPath web checks
 on:
   push:
-    branches: [main, 'feat/**']
+    branches: [main, 'feat/**', 'fix/**']
   pull_request:
     branches: [main]
 jobs:
@@ -14,11 +14,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Verify Vercel root Next.js version
+        run: node -e "const r=require('./package.json');const w=require('./apps/web/package.json');if(!r.dependencies?.next||r.dependencies.next!==w.dependencies.next)throw Error('Next.js must be declared at Vercel root and match apps/web');"
       - name: Install workspaces
         run: npm install --no-audit --no-fund
       - name: Check shared game engine
         run: npm test
       - name: Typecheck web
         run: npm run typecheck -w @wordpath/web
-      - name: Build Next.js web app
-        run: npm run build:web
+      - name: Build Next.js web app from root
+        run: npm run build
