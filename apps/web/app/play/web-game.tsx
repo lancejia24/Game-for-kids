@@ -4,6 +4,7 @@ import {apply,isCorrect,nextHint,newSession,restoreSession,resolveDrop,serialize
 import './play.css';
 import {InteractiveCharacter} from './interactive-character';
 import {useNarration} from './use-narration';
+import {SwipeBlend} from './swipe-blend';
 type Lesson={word:string;picture:string;question:string;sound:string;choices:readonly string[];phonics:string;meaning:string};
 const LESSONS:readonly Lesson[]=[
  {word:'CAT',picture:'🐈',question:'Which letter spells the first /k/ sound in cat?',sound:'C',choices:['C','M','T'],phonics:'C spells the /k/ sound at the start of CAT.',meaning:'A small animal that often lives with people.'},
@@ -134,7 +135,8 @@ export function WebGame(){
   {phase==='spell'?<>
    <h2 className="play-title">{mode==='Kids'?'🧩 Build your word!':mode==='Teens'?'Challenge 2 · Word builder':'2. Spell the word'}</h2>
    <InteractiveCharacter key={'clue-'+lesson.word} word={lesson.word} unlocked={false}/>
-   <p className="play-prompt">Arrange the letters to spell this word.</p><div className="tool-actions"><button type="button" className="tool-button" disabled={!narration.enabled} onClick={()=>narration.play(lesson.word+':word')}>▶ Hear the word (IPA pronunciation)</button></div>
+   <p className="play-prompt">Arrange the letters to spell this word.</p>
+   <SwipeBlend word={lesson.word} enabled={narration.enabled}/><div className="tool-actions"><button type="button" className="tool-button" disabled={!narration.enabled} onClick={()=>narration.play(lesson.word+':word')}>▶ Hear the word (IPA pronunciation)</button></div>
    <div className="slot-rows" role="group" aria-label="Answer slots">
     {Array.from({length:Math.ceil(tileCount/5)},(_,row)=><div className="slot-row" key={row}>{state.slots.slice(row*5,row*5+5).map((id,i)=>{
      const index=row*5+i;
