@@ -29,6 +29,10 @@ The web demo requires no Supabase credentials. Admin login and draft management 
 
 See [the Master Development Blueprint](Spelling_Phonics_App_AI_Development_Blueprint.md) for the complete product specification and [human audio policy](docs/HUMAN_VOICE_POLICY.md) for recording requirements.
 
+## Playful characters
+
+The browser demo has original interactive character reactions: a jumping cat with a real recorded CC0 meow on touch after correct spelling, a swimming fish with bubbles, and playful banana/strawberry animations. These reactions are optional, keyboard accessible, and respect reduced-motion settings. See [interactive reaction notes](docs/INTERACTIVE_REACTIONS.md). This is distinct from the future 100% human-recorded phonics narration.
+
 ## Project stage
 
 The web demo currently contains four development sample words, placeholder emoji clues, and text phonics. This is *not* the full lesson pathway, not the final narrated curriculum, and not ready for App Store/Play Store release. The admin creates/edits/archives drafts but cannot publish content until reviewed real-human recordings and media are integrated.
