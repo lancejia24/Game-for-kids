@@ -51,8 +51,12 @@ GRANT INSERT, UPDATE ON public.wordpath_words TO authenticated;
 
 DROP POLICY IF EXISTS wordpath_words_public_or_admin_read ON public.wordpath_words;
 CREATE POLICY wordpath_words_public_or_admin_read ON public.wordpath_words
- FOR SELECT TO anon, authenticated
+ FOR SELECT TO authenticated
  USING (status = 'published' OR (SELECT public.wordpath_is_admin()));
+DROP POLICY IF EXISTS wordpath_words_public_read ON public.wordpath_words;
+CREATE POLICY wordpath_words_public_read ON public.wordpath_words
+ FOR SELECT TO anon
+ USING (status = 'published');
 
 DROP POLICY IF EXISTS wordpath_words_admin_insert ON public.wordpath_words;
 CREATE POLICY wordpath_words_admin_insert ON public.wordpath_words
