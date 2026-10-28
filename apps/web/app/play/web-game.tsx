@@ -100,7 +100,7 @@ export function WebGame(){
   {mode==='Kids'?<button type="button" className="journey-toggle" aria-expanded={showTools} onClick={()=>setShowTools(v=>!v)}>⚙️ {showTools?'Hide sound settings':'Sound settings'}</button>:null}
   <div className={'play-controls audio-controls'+(mode==='Kids'&&!showTools?' collapsed':'')} role="group" aria-label="Narration preferences">
    <button className="mode-pill" aria-pressed={narration.enabled} onClick={narration.toggle}>
-    {narration.enabled?'🔊 SSML narration on':'🔇 Enable SSML narration'}
+    {narration.enabled?'🔊 Saved audio on':'🔇 Enable saved audio'}
    </button>
    <button className="tool-button" disabled={!narration.enabled} onClick={()=>narration.play(currentClip)}>Replay spoken instruction</button>
   </div>
@@ -126,7 +126,7 @@ export function WebGame(){
   {phase==='sound'?<>
    <h2 className="play-title">{mode==='Kids'?'👂 Listen and choose!':mode==='Teens'?'Challenge 1 · Sound match':'1. Identify the sound'}</h2>
    <p className="play-prompt">{lesson.question}</p>
-   <div className="human-audio-note" role="status">Choose SSML narration above to hear this instruction with the IPA-guided word pronunciation, or read the text. Real human recordings are a separate audio option being developed.</div>
+   <div className="human-audio-note" role="status">Enable saved audio to hear a verified recording when available, or read the written instruction.</div>
    <div className="sound-choices">{lesson.choices.map(c=><button className="choice-tile" key={c} aria-pressed={choice===c} onClick={()=>{patch({choice:c});setFeedback(c===lesson.sound?lesson.phonics:'Try another answer. Look at the letters in the example word.');if(narration.enabled)narration.play(c===lesson.sound?lesson.word+':phonics':'game:retry');}}>{c}</button>)}</div>
    <div className="feedback" role="status">{feedback}</div>
    <div className="tool-actions"><button className="button primary" disabled={choice!==lesson.sound} onClick={()=>{patch({phase:'spell'});setFeedback('Tap a letter then a slot, or drag tiles to build the word.');}}>Continue to spelling</button></div>
@@ -156,7 +156,7 @@ export function WebGame(){
     <button className="tool-button" onClick={()=>change({kind:'reset'})}>Reset tiles</button>
     <button className="button primary" disabled={state.slots.some(slot=>slot===null)} onClick={check}>Check word</button>
    </div>
-   <div className="human-audio-note">SSML narration is generated speech. Human recordings remain a separate option once verified recordings are available.</div>
+   <div className="human-audio-note">Only verified local/open-source or human-recorded audio is available. Missing recordings remain silent.</div>
   </>:null}
   {phase==='meaning'?<div className="play-success" aria-live="polite">
    <InteractiveCharacter key={'success-'+lesson.word} word={lesson.word} unlocked/>
@@ -173,6 +173,6 @@ export function WebGame(){
   </div>
   <div className="tool-actions"><button className="tool-button" onClick={resetProgress}>Start this demo over</button></div>
   {storageError?<p className="play-warning" role="alert">Browser storage is unavailable, so this session might not be saved.</p>:null}
-  <p className="tiny-caption">Sample words, IPA pronunciations and illustrations are development-only and require educator review. SSML narration is synthetic; animal sound effects are real recordings. Approved human voices remain supported separately.</p>
+  <p className="tiny-caption">Sample words, IPA pronunciations and illustrations are development-only and require educator review. Playback uses verified static recordings only; human and locally generated audio must be labelled correctly.</p>
  </div>;
 }
