@@ -75,7 +75,7 @@ export function WebGame(){
    setFeedback('Letter '+letter+'. Device voice is unavailable.');return;
   }
   window.speechSynthesis.cancel();
-  const speech=new SpeechSynthesisUtterance(letter.toLowerCase());
+  const speech=new SpeechSynthesisUtterance('Letter '+letter);
   speech.lang='en-US';speech.rate=.75;
   window.speechSynthesis.speak(speech);
  };
