@@ -11,18 +11,28 @@ function soundGroups(word:string):string[]{
  const lesson=DEMO_SEGMENTS.find(x=>x.word===word);
  return lesson?lesson.segments.map(x=>x.grapheme):[...word];
 }
-export function SwipeBlend({word,enabled}:{word:string;enabled:boolean}){
+export function SwipeBlend({word}:{word:string;enabled:boolean}){
  const groups=soundGroups(word);
  const [active,setActive]=useState(-1);
  const [visited,setVisited]=useState<number[]>([]);
  const gesture=useRef<{id:number;last:number;seen:Set<number>}|null>(null);
- const speakWord=useCallback(()=>{
-  if(!enabled||typeof window==='undefined'||!('speechSynthesis' in window))return;
+ const utteranceRef=useRef<SpeechSynthesisUtterance|null>(null);
+ const speak=useCallback((text:string,rate=.8)=>{
+  if(typeof window==='undefined'||!('speechSynthesis' in window))return;
   window.speechSynthesis.cancel();
-  const line=new SpeechSynthesisUtterance(word.toLowerCase());
-  line.lang='en-US';line.rate=.8;
+  const line=new SpeechSynthesisUtterance(text);
+  line.lang='en-US';line.rate=rate;
+  utteranceRef.current=line;
   window.speechSynthesis.speak(line);
- },[enabled,word]);
+ },[]);
+ const speakLetterNames=useCallback((group:string)=>{
+  // Device TTS can pronounce letter NAMES, not reliable isolated phonemes.
+  // Keep multi-letter graphemes distinct until reviewed sound clips exist.
+  speak([...group].join(', '),.75);
+ },[speak]);
+ const speakWord=useCallback(()=>{
+  speak(word.toLowerCase());
+ },[speak,word]);
  useEffect(()=>{setActive(-1);setVisited([]);gesture.current=null;},[word]);
  useEffect(()=>()=>{if(typeof window!=='undefined'&&'speechSynthesis' in window)window.speechSynthesis.cancel();},[]);
  const indexAt=(x:number,y:number)=>{
@@ -38,11 +48,13 @@ export function SwipeBlend({word,enabled}:{word:string;enabled:boolean}){
  };
  const end=()=>{
   const g=gesture.current;gesture.current=null;setActive(-1);
-  if(g&&g.seen.size===groups.length&&g.last===groups.length-1)speakWord();
+  if(!g)return;
+  if(g.seen.size===1){speakLetterNames(groups[g.last]);return;}
+  if(g.seen.size===groups.length&&g.last===groups.length-1)speakWord();
  };
  return <section className="blend-lab" aria-label={'Practice sounds and blend '+word}>
   <h3>👆 Trace across the sounds</h3>
-  <p>Tap a letter group to highlight it. Slide from left to right to follow the word, then hear the whole word.</p>
+  <p>Tap a letter to hear its name. Slide across all letter groups to hear the complete word.</p>
   <div className="blend-track" role="group" aria-label={'Sound groups of '+word}
    onPointerDown={e=>{
     if(e.pointerType==='mouse'&&e.button!==0)return;
@@ -57,8 +69,8 @@ export function SwipeBlend({word,enabled}:{word:string;enabled:boolean}){
   >{groups.map((group,index)=><button type="button" key={index} data-blend-index={index}
    className={'blend-sound'+(active===index?' sounding':'')+(visited.includes(index)?' heard':'')}
    aria-label={'Highlight sound group '+(index+1)+' '+group}
-   onClick={e=>{if(e.detail===0){setActive(index);setVisited([index]);}}}>{group}</button>)}</div>
-  <button type="button" className="blend-replay" onClick={speakWord} disabled={!enabled}>🔊 Hear {word}</button>
-  <p className="tiny-caption">Individual sound audio is temporarily unavailable until verified phoneme recordings are added. The whole-word voice is synthetic and may vary by device. We will not teach incorrect “kuh” or “tuh” sounds.</p>
+   onClick={e=>{if(e.detail===0){setActive(index);setVisited([index]);speakLetterNames(group);}}}>{group}</button>)}</div>
+  <button type="button" className="blend-replay" onClick={speakWord}>🔊 Hear {word}</button>
+  <p className="tiny-caption">Taps speak letter names, not phonics sounds. The completed swipe speaks the word. Accurate isolated phoneme blending needs reviewed recordings; device voices vary.</p>
  </section>;
 }
