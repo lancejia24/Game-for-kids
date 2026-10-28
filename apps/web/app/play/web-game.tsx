@@ -36,6 +36,8 @@ export function WebGame(){
  const [session,setSession]=useState<SavedSession|null>(null);
  const [feedback,setFeedback]=useState('Choose the correct letters.');
  const [storageError,setStorageError]=useState(false);
+ const [showJourney,setShowJourney]=useState(false);
+ const [showTools,setShowTools]=useState(false);
  const [pathProgress,setPathProgress]=useState<LearningProgress>(blankProgress);
  const narration=useNarration();
  const slotsRef=useRef<(HTMLDivElement|null)[]>([]);
@@ -86,20 +88,26 @@ export function WebGame(){
  const practice=(word:string)=>{const ix=WORDS.indexOf(word);if(ix<0)return;patch({step:ix,phase:'sound',choice:null,state:startWord(word)});setFeedback('Practice this word to build independent mastery.');};
  const recommended=recommendedLesson(pathProgress);
  const tileCount=state.slots.length;
- return <div className="play-shell">
-  <div className="play-heading"><p className="eyebrow">A PLAYABLE DEVELOPMENT PREVIEW</p><h1>Build a word. Learn a sound.</h1><p>Four sample challenges. No login, no ads, and your practice stays in this browser.</p></div>
-  <div className="play-controls" role="group" aria-label="Presentation style">
-   {(['Kids','Teens','Adults'] as const).map(m=><button className="mode-pill" aria-pressed={mode===m} onClick={()=>patch({mode:m})} key={m}>{m}</button>)}
+ return <div className={"play-shell age-"+mode.toLowerCase()}>
+  <div className="play-heading">
+   <p className="eyebrow">{mode==='Kids'?'🌈 WORD ADVENTURE':mode==='Teens'?'⚡ WORD CHALLENGE':'WORDPATH · PERSONAL PRACTICE'}</p>
+   <h1>{mode==='Kids'?'Let’s play with words!':mode==='Teens'?'Level up your spelling.':'Practice spelling and pronunciation.'}</h1>
+   <p>{mode==='Kids'?'Tap, match and spell. Earn a star for each mastered word!':mode==='Teens'?'Build your skills, collect stars and track every level.':'Four guided exercises with adjustable practice, written guidance and optional narration.'}</p>
   </div>
-  <div className="play-controls" role="group" aria-label="Narration preferences">
+  <div className="play-controls" role="group" aria-label="Presentation style">
+   {(['Kids','Teens','Adults'] as const).map(m=><button className="mode-pill" aria-pressed={mode===m} onClick={()=>{patch({mode:m});setShowTools(false);}} key={m}>{m==='Kids'?'🧸 Kids':m==='Teens'?'⚡ Teens':'📖 Adults'}</button>)}
+  </div>
+  {mode==='Kids'?<button type="button" className="journey-toggle" aria-expanded={showTools} onClick={()=>setShowTools(v=>!v)}>⚙️ {showTools?'Hide sound settings':'Sound settings'}</button>:null}
+  <div className={'play-controls audio-controls'+(mode==='Kids'&&!showTools?' collapsed':'')} role="group" aria-label="Narration preferences">
    <button className="mode-pill" aria-pressed={narration.enabled} onClick={narration.toggle}>
     {narration.enabled?'🔊 SSML narration on':'🔇 Enable SSML narration'}
    </button>
    <button className="tool-button" disabled={!narration.enabled} onClick={()=>narration.play(currentClip)}>Replay spoken instruction</button>
   </div>
-  <p className="tiny-caption">SSML voice is synthesized, not a human recording. Narration requires an Azure Speech connection.</p>
+  <p className={'tiny-caption audio-disclosure'+(mode==='Kids'&&!showTools?' collapsed':'')}>Optional SSML narration is synthesized, not human-recorded. It requires an Azure Speech connection.</p>
   {narration.error?<p className="play-warning" role="status">{narration.error}</p>:null}
-  <section className="pathway-panel" aria-label="Learning pathway progress">
+  <div className="journey-toolbar"><span role="status">{pathProgress.records.filter(r=>r.independent>=2).length} / {STARTER_PATH.length} stages mastered</span><button type="button" className="journey-toggle" aria-expanded={mode!=='Kids'||showJourney} onClick={()=>setShowJourney(v=>!v)}>{mode==='Kids'?(showJourney?'Hide my map':'🗺️ My adventure map'):showJourney?'Hide progress details':'Show progress details'}</button></div>
+  <section className={'pathway-panel'+(mode==='Kids'&&!showJourney?' collapsed':'')+(mode!=='Kids'&&!showJourney?' compact-journey':'')} aria-label="Learning pathway progress">
     <h2>My learning journey</h2><p>Finish each word independently twice to master it. Hints help you learn but do not count as independent mastery.</p>
     <div className="pathway-stages">{STARTER_PATH.map((item,i)=>{
       const complete=mastered(pathProgress,item.word);
@@ -113,10 +121,10 @@ export function WebGame(){
     {recommended?<button className="tool-button" onClick={()=>practice(recommended.word)}>Practice recommended word</button>:null}
     <button className="tool-button" onClick={clearMastery}>Clear pathway progress</button></div>
    </section>
-   <div className="step-count">Word {step+1} of {LESSONS.length} · {mode} Mode</div>
+   <div className="step-count">{mode==='Kids'?'⭐ Adventure '+(step+1)+' of '+LESSONS.length:mode==='Teens'?'LEVEL '+(step+1)+' / '+LESSONS.length:'Exercise '+(step+1)+' of '+LESSONS.length}</div>
   <div className="play-card">
   {phase==='sound'?<>
-   <h2 className="play-title">1. Recognize the sound</h2>
+   <h2 className="play-title">{mode==='Kids'?'👂 Listen and choose!':mode==='Teens'?'Challenge 1 · Sound match':'1. Identify the sound'}</h2>
    <p className="play-prompt">{lesson.question}</p>
    <div className="human-audio-note" role="status">Choose SSML narration above to hear this instruction with the IPA-guided word pronunciation, or read the text. Real human recordings are a separate audio option being developed.</div>
    <div className="sound-choices">{lesson.choices.map(c=><button className="choice-tile" key={c} aria-pressed={choice===c} onClick={()=>{patch({choice:c});setFeedback(c===lesson.sound?lesson.phonics:'Try another answer. Look at the letters in the example word.');if(narration.enabled)narration.play(c===lesson.sound?lesson.word+':phonics':'game:retry');}}>{c}</button>)}</div>
@@ -124,7 +132,7 @@ export function WebGame(){
    <div className="tool-actions"><button className="button primary" disabled={choice!==lesson.sound} onClick={()=>{patch({phase:'spell'});setFeedback('Tap a letter then a slot, or drag tiles to build the word.');}}>Continue to spelling</button></div>
   </>:null}
   {phase==='spell'?<>
-   <h2 className="play-title">2. Build the word</h2>
+   <h2 className="play-title">{mode==='Kids'?'🧩 Build your word!':mode==='Teens'?'Challenge 2 · Word builder':'2. Spell the word'}</h2>
    <InteractiveCharacter key={'clue-'+lesson.word} word={lesson.word} unlocked={false}/>
    <p className="play-prompt">Arrange the letters to spell this word.</p><div className="tool-actions"><button type="button" className="tool-button" disabled={!narration.enabled} onClick={()=>narration.play(lesson.word+':word')}>▶ Hear the word (IPA pronunciation)</button></div>
    <div className="slot-rows" role="group" aria-label="Answer slots">
@@ -135,7 +143,7 @@ export function WebGame(){
      </div>;
     })}</div>)}
    </div>
-   <p className="tray-caption">Drag tiles or select a tile and tap an empty slot. Select a placed tile to move or swap it.</p>
+   <p className="tray-caption">{mode==='Kids'?'Tap a letter, then tap a blank box. Or drag the letters!':'Drag tiles or select a tile and tap an empty slot. Select a placed tile to move or swap it.'}</p>
    <div className="letter-tray" ref={trayRef} onDragOver={e=>e.preventDefault()} onDrop={onDropTray} aria-label="Available letter tiles">
     {state.tiles.filter(t=>!state.slots.includes(t.id)).map(t=>tileNode(t.id))}
     {!state.tiles.some(t=>!state.slots.includes(t.id))?<span className="tray-caption">Drop a placed tile here to return it.</span>:null}
@@ -152,13 +160,13 @@ export function WebGame(){
   </>:null}
   {phase==='meaning'?<div className="play-success" aria-live="polite">
    <InteractiveCharacter key={'success-'+lesson.word} word={lesson.word} unlocked/>
-   <h2>Wonderful work! 🌟</h2><p className="reactor-unlock">Your character came to life. Tap it again to play!</p><div className="result-word">{lesson.word}</div>
+   <h2>{mode==='Kids'?'You did it! 🌟':mode==='Teens'?'Challenge cleared! ⚡':'Exercise completed ✓'}</h2><p className="reactor-unlock">Your character came to life. Tap it again to play!</p><div className="result-word">{lesson.word}</div>
    <p>{lesson.meaning}</p><p>{lesson.phonics}</p><div className="tool-actions"><button type="button" className="tool-button" disabled={!narration.enabled} onClick={()=>narration.play(lesson.word+':word')}>▶ Hear the word</button><button type="button" className="tool-button" disabled={!narration.enabled} onClick={()=>narration.play(lesson.word+':phonics')}>▶ Hear the sound explanation</button></div>
    <p className="tiny-caption">{state.hints>0?'Completed with help. Practice again for independent mastery.':'Completed without hints.'}</p>
    <button className="button primary" onClick={next}>{step===LESSONS.length-1?'Finish lesson':'Next word'}</button>
   </div>:null}
   {phase==='done'?<div className="play-success" aria-live="polite">
-   <div className="play-emoji" aria-hidden="true">🌟</div><h2>Lesson complete!</h2>
+   <div className="play-emoji" aria-hidden="true">🌟</div><h2>{mode==='Kids'?'Adventure complete!':mode==='Teens'?'All levels complete!':'Practice session complete'}</h2>
    <p>You practiced {completedWords.length} words. Keep exploring letter sounds and spelling patterns.</p>
    <button className="button primary" onClick={resetProgress}>Play again</button>
   </div>:null}
