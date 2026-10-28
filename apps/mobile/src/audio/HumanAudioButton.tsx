@@ -19,7 +19,7 @@ export function HumanAudioButton({clipId,label,allowSynthetic=false,autoPlay=fal
  const status=useAudioPlayerStatus(player);
  const played=useRef('');
  const [error,setError]=useState('');
- const available=!!source&&!status.error;
+ const available=!!source;
  const play=async()=>{
   if(!available)return;
   setError('');
@@ -43,7 +43,7 @@ export function HumanAudioButton({clipId,label,allowSynthetic=false,autoPlay=fal
   </Pressable>
   {synthetic?<Text style={styles.synthetic}>Synthetic SSML / IPA voice. Not a recording of a person. Requires Internet and a configured Azure Speech service.</Text>:null}
   {!available?<Text style={styles.explanation}>No playable audio for this activity. Read the on-screen instructions for now.</Text>:null}
-  {status.error||error?<Text style={styles.error}>{error||'Recording failed to load. Please use the written text.'}</Text>:null}
+  {error?<Text style={styles.error}>{error}</Text>:null}
  </View>;
 }
 const styles=StyleSheet.create({

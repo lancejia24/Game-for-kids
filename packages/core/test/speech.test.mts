@@ -26,3 +26,11 @@ test('escape authored text and IPA and reject unapproved voice names',()=>{
 test('scripts are flagged as development content, not educator reviewed',()=>{
  assert.ok(allSpeechIds().every(id=>getSpeechEntry(id)?.reviewStatus==='development'));
 });
+
+test('hint SSML stays aligned with visible first hint and pronounces the target',()=>{
+ for(const word of ['CAT','FISH','BANANA','STRAWBERRY']){
+  const hint=getSpeechEntry(word+':hint:0');assert.ok(hint);
+  assert.match(hint.text,/Replay the word and listen carefully/);
+  assert.match(buildSsml(hint),/alphabet="ipa"/);
+ }
+});
