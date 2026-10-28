@@ -1,9 +1,9 @@
 # WordPath: human-recorded voice policy
 
-**Owner requirement: Every spoken audio clip MUST be a recording of a real human voice.** No synthesized device text-to-speech, generative AI voices, voice cloning, or automatic spoken fallbacks are allowed.
+**Human-only mode:** Genuine human recordings remain the preferred content and are not replaced or mislabeled. The owner subsequently requested SSML with IPA across the application. That is **a separate, explicitly opt-in synthetic narration mode**, not 100% human audio. See [SSML_IPA_NARRATION.md](SSML_IPA_NARRATION.md). Never synthesize speech silently or claim that synthesized audio came from a human.
 
 ## Current implementation and status
-- The previous `expo-speech` playback has been removed from the mobile screen and package. The app now uses `expo-audio` with a manifest that accepts **only reviewed/rights-cleared human recording metadata**.
+- The previous `expo-speech` playback has been removed from the mobile screen and package. The app uses `expo-audio` with a manifest for **reviewed/rights-cleared human recording metadata**. The new synthetic SSML mode uses a separate server endpoint and is never registered as human-recorded.
 - The manifest is intentionally empty. There are **no actual human recordings in this commit**, and the learner-facing UI clearly states when audio is unavailable. The existing on-screen text remains, but the spoken phonics acceptance criteria are blocked until recordings are added.
 - The metadata validator rejects entries marked generated, unreviewed, rights-unconfirmed or without narrator/reviewer attribution.
 - A metadata assertion does **not** automatically prove that the underlying audio was recorded by a real person. An editor must listen to each file, check its provenance and usage authorization, and approve its transcript/pronunciation.
@@ -28,4 +28,4 @@ Repeat the same four categories for FISH, BANANA and STRAWBERRY, expanding to 30
 ## Verification still required
 - No authentic human recordings have been supplied, played or verified yet.
 - Mobile `expo-audio` load/replay/interruptions, file bundling, 2–10 letter layouts and iOS/Android real-device playback remain to be tested.
-- Future published downloads must be local/offline-capable and verify checksums and editorial approval. Do not silently fall back to AI speech.
+- Future published downloads must be local/offline-capable and verify checksums and editorial approval. Do not silently switch from human recordings to synthetic SSML speech. User permission and visible labelling are required.

@@ -3,6 +3,7 @@ import React,{useEffect,useRef,useState} from 'react';
 import {apply,isCorrect,nextHint,newSession,restoreSession,resolveDrop,serializeSession,startWord,type SavedSession,type Tile,type Place,type Rectangle} from '@wordpath/core';
 import './play.css';
 import {InteractiveCharacter} from './interactive-character';
+import {useNarration} from './use-narration';
 type Lesson={word:string;picture:string;question:string;sound:string;choices:readonly string[];phonics:string;meaning:string};
 const LESSONS:readonly Lesson[]=[
  {word:'CAT',picture:'🐈',question:'Which letter spells the first /k/ sound in cat?',sound:'C',choices:['C','M','T'],phonics:'C spells the /k/ sound at the start of CAT.',meaning:'A small animal that often lives with people.'},
@@ -34,10 +35,16 @@ export function WebGame(){
  const [session,setSession]=useState<SavedSession|null>(null);
  const [feedback,setFeedback]=useState('Choose the correct letters.');
  const [storageError,setStorageError]=useState(false);
+ const narration=useNarration();
  const slotsRef=useRef<(HTMLDivElement|null)[]>([]);
  const trayRef=useRef<HTMLDivElement|null>(null);
  useEffect(()=>{try{const stored=window.localStorage.getItem(STORAGE);setSession(restoreSession(stored,WORDS)??newSession(WORDS));}catch{setStorageError(true);setSession(newSession(WORDS));}},[]);
  useEffect(()=>{if(session){try{window.localStorage.setItem(STORAGE,serializeSession(session));}catch{setStorageError(true);}}},[session]);
+ const currentWord=session?LESSONS[session.step].word:'CAT';
+ const currentClip=session?.phase==='sound'?currentWord+':prompt':session?.phase==='spell'?currentWord+':spell':session?.phase==='meaning'?currentWord+':meaning':'game:complete';
+ const narrationOn=narration.enabled;
+ const playAudio=narration.play;
+ useEffect(()=>{if(session&&narrationOn)playAudio(currentClip);},[session?.step,session?.phase,narrationOn,currentClip,playAudio]);
  if(!session)return <div className="play-loading">Opening your offline-friendly spelling demo…</div>;
  const {step,phase,state,mode,choice,completedWords}=session;
  const lesson=LESSONS[step];
@@ -66,30 +73,38 @@ export function WebGame(){
   if(isCorrect(state)){
    setSession(s=>s?{...s,phase:'meaning',state:apply(s.state,{kind:'check'}),completedWords:s.completedWords.includes(lesson.word)?s.completedWords:[...s.completedWords,lesson.word]}:s);
   }else{
-   change({kind:'check'});setFeedback('Not quite. Try moving or swapping a letter.');
+   change({kind:'check'});setFeedback('Not quite. Try moving or swapping a letter.');if(narration.enabled)narration.play('game:retry');
   }
  };
- const resetProgress=()=>{const replacement=newSession(WORDS);patch({...replacement,mode});setFeedback('Your demo has been reset.');};
+ const resetProgress=()=>{const replacement=newSession(WORDS);patch({...replacement,mode});setFeedback('Your demo has been reset.');if(narration.enabled)narration.play('game:reset');};
  const tileCount=state.slots.length;
  return <div className="play-shell">
   <div className="play-heading"><p className="eyebrow">A PLAYABLE DEVELOPMENT PREVIEW</p><h1>Build a word. Learn a sound.</h1><p>Four sample challenges. No login, no ads, and your practice stays in this browser.</p></div>
   <div className="play-controls" role="group" aria-label="Presentation style">
    {(['Kids','Teens','Adults'] as const).map(m=><button className="mode-pill" aria-pressed={mode===m} onClick={()=>patch({mode:m})} key={m}>{m}</button>)}
   </div>
+  <div className="play-controls" role="group" aria-label="Narration preferences">
+   <button className="mode-pill" aria-pressed={narration.enabled} onClick={narration.toggle}>
+    {narration.enabled?'🔊 SSML narration on':'🔇 Enable SSML narration'}
+   </button>
+   <button className="tool-button" disabled={!narration.enabled} onClick={()=>narration.play(currentClip)}>Replay spoken instruction</button>
+  </div>
+  <p className="tiny-caption">SSML voice is synthesized, not a human recording. Narration requires an Azure Speech connection.</p>
+  {narration.error?<p className="play-warning" role="status">{narration.error}</p>:null}
   <div className="step-count">Word {step+1} of {LESSONS.length} · {mode} Mode</div>
   <div className="play-card">
   {phase==='sound'?<>
    <h2 className="play-title">1. Recognize the sound</h2>
    <p className="play-prompt">{lesson.question}</p>
-   <div className="human-audio-note" role="status">🔇 Human-recorded audio is being prepared. The text prompt is available while verified recordings are added.</div>
-   <div className="sound-choices">{lesson.choices.map(c=><button className="choice-tile" key={c} aria-pressed={choice===c} onClick={()=>{patch({choice:c});setFeedback(c===lesson.sound?lesson.phonics:'Try another answer. Look at the letters in the example word.');}}>{c}</button>)}</div>
+   <div className="human-audio-note" role="status">Choose SSML narration above to hear this instruction with the IPA-guided word pronunciation, or read the text. Real human recordings are a separate audio option being developed.</div>
+   <div className="sound-choices">{lesson.choices.map(c=><button className="choice-tile" key={c} aria-pressed={choice===c} onClick={()=>{patch({choice:c});setFeedback(c===lesson.sound?lesson.phonics:'Try another answer. Look at the letters in the example word.');if(narration.enabled)narration.play(c===lesson.sound?lesson.word+':phonics':'game:retry');}}>{c}</button>)}</div>
    <div className="feedback" role="status">{feedback}</div>
    <div className="tool-actions"><button className="button primary" disabled={choice!==lesson.sound} onClick={()=>{patch({phase:'spell'});setFeedback('Tap a letter then a slot, or drag tiles to build the word.');}}>Continue to spelling</button></div>
   </>:null}
   {phase==='spell'?<>
    <h2 className="play-title">2. Build the word</h2>
    <InteractiveCharacter key={'clue-'+lesson.word} word={lesson.word} unlocked={false}/>
-   <p className="play-prompt">Arrange the letters to spell this word.</p>
+   <p className="play-prompt">Arrange the letters to spell this word.</p><div className="tool-actions"><button type="button" className="tool-button" disabled={!narration.enabled} onClick={()=>narration.play(lesson.word+':word')}>▶ Hear the word (IPA pronunciation)</button></div>
    <div className="slot-rows" role="group" aria-label="Answer slots">
     {Array.from({length:Math.ceil(tileCount/5)},(_,row)=><div className="slot-row" key={row}>{state.slots.slice(row*5,row*5+5).map((id,i)=>{
      const index=row*5+i;
@@ -106,17 +121,17 @@ export function WebGame(){
    {state.selected&&state.slots.includes(state.selected)?<div className="tool-actions"><button className="tool-button" onClick={()=>change({kind:'return',tileId:state.selected!})}>Return selected letter</button></div>:null}
    <div className="feedback" role="status">{feedback}</div>
    <div className="tool-actions">
-    <button className="tool-button" onClick={()=>{const text=state.hints===0?'The word begins with '+lesson.word[0]+'.':nextHint(state);setFeedback(text);change({kind:'hint'});}}>Hint</button>
+    <button className="tool-button" onClick={()=>{const text=state.hints===0?'The word begins with '+lesson.word[0]+'.':nextHint(state);setFeedback(text);if(narration.enabled)narration.play(lesson.word+':hint:'+Math.min(3,state.hints));change({kind:'hint'});}}>Hint</button>
     <button className="tool-button" disabled={!state.history.length} onClick={()=>change({kind:'undo'})}>Undo</button>
     <button className="tool-button" onClick={()=>change({kind:'reset'})}>Reset tiles</button>
     <button className="button primary" disabled={state.slots.some(slot=>slot===null)} onClick={check}>Check word</button>
    </div>
-   <div className="human-audio-note">Human narration will be available after reviewed recordings are uploaded. No AI or synthesized voice is used.</div>
+   <div className="human-audio-note">SSML narration is generated speech. Human recordings remain a separate option once verified recordings are available.</div>
   </>:null}
   {phase==='meaning'?<div className="play-success" aria-live="polite">
    <InteractiveCharacter key={'success-'+lesson.word} word={lesson.word} unlocked/>
    <h2>Wonderful work! 🌟</h2><p className="reactor-unlock">Your character came to life. Tap it again to play!</p><div className="result-word">{lesson.word}</div>
-   <p>{lesson.meaning}</p><p>{lesson.phonics}</p>
+   <p>{lesson.meaning}</p><p>{lesson.phonics}</p><div className="tool-actions"><button type="button" className="tool-button" disabled={!narration.enabled} onClick={()=>narration.play(lesson.word+':word')}>▶ Hear the word</button><button type="button" className="tool-button" disabled={!narration.enabled} onClick={()=>narration.play(lesson.word+':phonics')}>▶ Hear the sound explanation</button></div>
    <p className="tiny-caption">{state.hints>0?'Completed with help. Practice again for independent mastery.':'Completed without hints.'}</p>
    <button className="button primary" onClick={next}>{step===LESSONS.length-1?'Finish lesson':'Next word'}</button>
   </div>:null}
@@ -128,6 +143,6 @@ export function WebGame(){
   </div>
   <div className="tool-actions"><button className="tool-button" onClick={resetProgress}>Start this demo over</button></div>
   {storageError?<p className="play-warning" role="alert">Browser storage is unavailable, so this session might not be saved.</p>:null}
-  <p className="tiny-caption">Sample words, interactive illustrations and written phonics prompts are development-only. Animal sounds are real recordings; spoken phonics will use only approved human voices.</p>
+  <p className="tiny-caption">Sample words, IPA pronunciations and illustrations are development-only and require educator review. SSML narration is synthetic; animal sound effects are real recordings. Approved human voices remain supported separately.</p>
  </div>;
 }
