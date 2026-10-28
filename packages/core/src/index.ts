@@ -38,3 +38,6 @@ export type {SpeechPiece,SpeechEntry} from './speech.ts';
 
 export {AUDIO_LIBRARY,isValidAsset,approvedAsset} from './audioLibrary.ts';
 export type {AudioAsset,AudioManifest,AudioProvenance} from './audioLibrary.ts';
+
+export {STARTER_PATH,blankProgress,mastered,recommendedLesson,recordAttempt,attemptFromState,safeRestoreProgress} from './pathways.ts';
+export type {PathStage,LearningMode,LessonPathItem,MasteryRecord,LearningProgress} from './pathways.ts';
