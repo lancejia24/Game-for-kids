@@ -28,7 +28,7 @@ export function SwipeBlend({word}:{word:string;enabled:boolean}){
  const speakLetterNames=useCallback((group:string)=>{
   // Device TTS can pronounce letter NAMES, not reliable isolated phonemes.
   // Keep multi-letter graphemes distinct until reviewed sound clips exist.
-  speak([...group].join(', '),.75);
+  speak([...group].map(letter=>'letter '+letter).join('. '),.75);
  },[speak]);
  const speakWord=useCallback(()=>{
   speak(word.toLowerCase());
