@@ -2,7 +2,7 @@
 
 A cross-platform spelling and phonics product, with React Native/Expo mobile learning and a Next.js browser preview/admin foundation.
 
-**Human voice requirement:** All spoken instruction and words must be authentic, editor-approved human recordings. No AI voices, voice cloning, or text-to-speech fallback. Real recordings are still needed and the demo currently displays written prompts.
+**Audio modes:** The app keeps support for verified human-recorded audio, which remains the preferred curriculum source. A separate, explicitly labelled **opt-in synthetic SSML/IPA voice** is now available when Azure Speech is configured. Synthesized speech must never be described as 100% human-recorded. See [SSML/IPA narration](docs/SSML_IPA_NARRATION.md).
 
 ## Live web project
 
@@ -31,8 +31,8 @@ See [the Master Development Blueprint](Spelling_Phonics_App_AI_Development_Bluep
 
 ## Playful characters
 
-The browser demo has original interactive character reactions: a jumping cat with a real recorded CC0 meow on touch after correct spelling, a swimming fish with bubbles, and playful banana/strawberry animations. These reactions are optional, keyboard accessible, and respect reduced-motion settings. See [interactive reaction notes](docs/INTERACTIVE_REACTIONS.md). This is distinct from the future 100% human-recorded phonics narration.
+The browser demo has original interactive character reactions: a jumping cat with a real recorded CC0 meow on touch after correct spelling, a swimming fish with bubbles, and playful banana/strawberry animations. These reactions are optional, keyboard accessible, and respect reduced-motion settings. See [interactive reaction notes](docs/INTERACTIVE_REACTIONS.md). This is distinct from either human-recorded phonics narration or the opt-in Azure SSML narration.
 
 ## Project stage
 
-The web demo currently contains four development sample words, placeholder emoji clues, and text phonics. This is *not* the full lesson pathway, not the final narrated curriculum, and not ready for App Store/Play Store release. The admin creates/edits/archives drafts but cannot publish content until reviewed real-human recordings and media are integrated.
+The web demo currently contains four development sample words, illustrative characters, and written phonics with an optional Azure SSML narration mode. This is *not* the full lesson pathway, not the final narrated curriculum, and not ready for App Store/Play Store release. The admin creates/edits/archives drafts but cannot publish content until reviewed real-human recordings and media are integrated.

@@ -18,6 +18,8 @@ export default function Game(){
  const [ready,setReady]=useState(false);
  const [storageWarning,setStorageWarning]=useState(false);
  const [message,setMessage]=useState('Choose the letters that match the sound.');
+ const [ssmlNarration,setSsmlNarration]=useState(false);
+ const [announcement,setAnnouncement]=useState<string|null>(null);
  const slotRefs=useRef<(View|null)[]>([]);
  const trayRef=useRef<View|null>(null);
  const {width}=useWindowDimensions();
@@ -53,11 +55,13 @@ export default function Game(){
   const next=step+1;
   update({step:next,phase:'sound',choice:null,state:startWord(STARTER_LESSONS[next].word)});
   setMessage('Choose the letters that match the sound.');
+  setAnnouncement(null);
  };
  const check=()=>{
   if(!isCorrect(state)){
    changeState({kind:'check'});
    setMessage('Not quite. Review the word and rearrange the letters.');
+   setAnnouncement('game:retry');
    return;
   }
   setSession(current=>({
@@ -81,21 +85,25 @@ export default function Game(){
   <Text style={styles.brand}>WordPath</Text><Text style={styles.sub}>Listen • Learn • Build</Text>
   <View style={styles.modes}>{(['Kids','Teens','Adults'] as const).map(item=><Pressable key={item} accessibilityRole="button" accessibilityState={{selected:mode===item}} onPress={()=>update({mode:item})} style={[styles.mode,mode===item&&styles.active]}><Text style={styles.modeText}>{item}</Text></Pressable>)}</View>
   <Text style={styles.progress}>Lesson {step+1} of {STARTER_LESSONS.length} • {mode} Mode</Text>
+  {button(ssmlNarration?'SSML narration ON (synthetic)':'Enable SSML + IPA narration',()=>{setSsmlNarration(x=>!x);setAnnouncement(null);})}
+  <Text style={styles.note}>SSML voices are synthesized. Approved human recordings are used first when available. Audio requires Internet until verified recordings are bundled.</Text>
   {!ready?<Text accessibilityRole="text">Loading your offline lesson…</Text>:null}
   {ready&&phase==='sound'?<View style={styles.card}>
    <Text style={styles.heading}>Hear the sound</Text>
    <Text style={styles.prompt}>{lesson.prompt}</Text>
-   <HumanAudioButton key={lesson.word+':prompt'} clipId={lesson.word+':prompt'} label="Play recorded human instruction"/>
+   <HumanAudioButton key={lesson.word+':prompt:'+ssmlNarration} clipId={lesson.word+':prompt'} label="Replay spoken phonics prompt" allowSynthetic={ssmlNarration} autoPlay={ssmlNarration}/>
    <View style={styles.choices}>{lesson.choices.map(c=><Pressable accessibilityRole="button" accessibilityLabel={'Choose '+c} key={c} style={[styles.choice,choice===c&&styles.selected]} onPress={()=>{
-    update({choice:c});if(c===lesson.sound){setMessage(lesson.phonics);}else{setMessage('Try again. Review the instruction.');}
+    update({choice:c});if(c===lesson.sound){setMessage(lesson.phonics);setAnnouncement(null);}else{setMessage('Try again. Review the instruction.');setAnnouncement('game:retry');}
    }}><Text style={styles.letter}>{c}</Text></Pressable>)}</View>
    <Text style={styles.info}>{message}</Text>
-   {choice===lesson.sound?<HumanAudioButton key={lesson.word+':phonics'} clipId={lesson.word+':phonics'} label="Hear human phonics explanation"/>:null}
-   {button('Continue to spelling',()=>{update({phase:'spell'});setMessage('Tap a letter and then a slot, or drag it to the slot.');},choice!==lesson.sound)}
+   {choice===lesson.sound?<HumanAudioButton key={lesson.word+':phonics:'+ssmlNarration} clipId={lesson.word+':phonics'} label="Hear sound explanation" allowSynthetic={ssmlNarration} autoPlay={ssmlNarration}/>:null}
+   {button('Continue to spelling',()=>{update({phase:'spell'});setAnnouncement(null);setMessage('Tap a letter and then a slot, or drag it to the slot.');},choice!==lesson.sound)}
   </View>:null}
   {ready&&phase==='spell'?<View style={styles.card}>
    <Text style={styles.heading}>Build the word</Text><Text style={styles.picture}>{lesson.icon}</Text>
-   <Text style={styles.prompt}>What word is this?</Text><HumanAudioButton key={lesson.word+':word'} clipId={lesson.word+':word'} label="Hear human recording of the word"/>
+   <Text style={styles.prompt}>What word is this?</Text>
+   <HumanAudioButton key={lesson.word+':spell:'+ssmlNarration} clipId={lesson.word+':spell'} label="Hear spelling instructions" allowSynthetic={ssmlNarration} autoPlay={ssmlNarration}/>
+   <HumanAudioButton key={lesson.word+':word:'+ssmlNarration} clipId={lesson.word+':word'} label="Replay word pronunciation with IPA" allowSynthetic={ssmlNarration}/>
    <View style={styles.answer}>{slotRows}</View>
    <Text style={styles.prompt}>Move the letter tiles into the answer slots</Text>
    <View ref={view=>{trayRef.current=view;}} collapsable={false} style={styles.tray}>
@@ -104,8 +112,9 @@ export default function Game(){
    </View>
    {state.selected&&state.slots.includes(state.selected)?button('Return selected letter to tray',()=>changeState({kind:'return',tileId:state.selected!})):null}
    <Text style={styles.info}>{message}</Text>
+   {ssmlNarration&&announcement?<HumanAudioButton key={announcement+':'+state.hints+':'+state.checks} clipId={announcement} label="Replay feedback or hint" allowSynthetic autoPlay/>:null}
    <View style={styles.actions}>
-    {button('Hint',()=>{setMessage(nextHint(state));changeState({kind:'hint'});})}
+    {button('Hint',()=>{setMessage(nextHint(state));setAnnouncement(lesson.word+':hint:'+Math.min(state.hints,3));changeState({kind:'hint'});})}
     {button('Undo',()=>changeState({kind:'undo'}),state.history.length===0)}
     {button('Reset',()=>changeState({kind:'reset'}))}
    </View>
@@ -116,17 +125,18 @@ export default function Game(){
    <Text style={styles.picture}>{lesson.icon}</Text><Text style={styles.heading}>{lesson.word}</Text>
    <Text style={styles.prompt}>{lesson.meaning}</Text><Text style={styles.info}>{lesson.phonics}</Text>
    <Text style={styles.note}>{state.hints>0?'Completed with help. Keep practicing for independent mastery!':'Completed without hints.'}</Text>
-   <HumanAudioButton key={lesson.word+':meaning'} clipId={lesson.word+':meaning'} label="Hear human-recorded definition"/>
-   <HumanAudioButton key={lesson.word+':word-result'} clipId={lesson.word+':word'} label="Replay the human-recorded word"/>
+   <HumanAudioButton key={lesson.word+':meaning:'+ssmlNarration} clipId={lesson.word+':meaning'} label="Hear definition" allowSynthetic={ssmlNarration} autoPlay={ssmlNarration}/>
+   <HumanAudioButton key={lesson.word+':word-result:'+ssmlNarration} clipId={lesson.word+':word'} label="Replay IPA word pronunciation" allowSynthetic={ssmlNarration}/>
    {button(step===STARTER_LESSONS.length-1?'Finish lesson':'Next word',advance)}
   </View>:null}
   {ready&&phase==='done'?<View style={styles.card}>
    <Text style={styles.heading}>🌟 Lesson complete!</Text>
    <Text style={styles.prompt}>You practiced sounds and spelled {completedWords.length} words.</Text>
-   {button('Play again',()=>{const fresh=newSession(STARTER_WORDS);update({...fresh,mode});setMessage('Choose the letters that match the sound.');})}
+   <HumanAudioButton key={'game:complete:'+ssmlNarration} clipId="game:complete" label="Hear lesson celebration" allowSynthetic={ssmlNarration} autoPlay={ssmlNarration}/>
+   {button('Play again',()=>{const fresh=newSession(STARTER_WORDS);update({...fresh,mode});setMessage('Choose the letters that match the sound.');setAnnouncement(null);})}
   </View>:null}
   {storageWarning?<Text style={styles.warning}>Unable to access local lesson storage. You can still play, but this session might not be saved.</Text>:null}
-  <Text style={styles.note}>Offline guest demo. Human-recorded audio only: recordings are not yet provided, so this starter currently offers on-screen text without spoken playback. Emoji artwork is development-only.</Text>
+  <Text style={styles.note}>Offline guest demo. Optional synthetic SSML narration with sample IPA is clearly labelled; it does not meet the 100% human-recorded preference. IPA and emoji remain development-only.</Text>
  </ScrollView></SafeAreaView>;
 }
 const styles=StyleSheet.create({

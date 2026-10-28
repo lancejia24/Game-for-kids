@@ -32,3 +32,6 @@ export type {SavedSession,Phase,Presentation} from './session.ts';
 
 export {isApprovedHumanClipMetadata} from './humanAudio.ts';
 export type {HumanClipKind,HumanClipMetadata} from './humanAudio.ts';
+
+export {allSpeechIds,getSpeechEntry,xmlEscape,buildSsml} from './speech.ts';
+export type {SpeechPiece,SpeechEntry} from './speech.ts';
