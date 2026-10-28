@@ -47,3 +47,6 @@ export type {CurriculumCandidate} from './curriculumCandidates.ts';
 
 export {DEMO_SEGMENTS,validateLesson,gapForMode,planPhonemePlayback,playPhonemes} from './phonemeBlending.ts';
 export type {PhonemeSegment,PhonemeLesson,PhonemePlaybackPlan,PlaybackAdapter,PlaybackUnit} from './phonemeBlending.ts';
+
+export {STARTER_AUDIO_PACKS,validateAudioPack,isValidInstalledPack,safeReadInstalledPacks} from './offlineAudioPacks.ts';
+export type {AudioPackFile,AudioPackManifest,InstalledAudioPack} from './offlineAudioPacks.ts';
