@@ -44,3 +44,6 @@ export type {PathStage,LearningMode,LessonPathItem,MasteryRecord,LearningProgres
 
 export {CURRICULUM_CANDIDATES,getCurriculumCandidate} from './curriculumCandidates.ts';
 export type {CurriculumCandidate} from './curriculumCandidates.ts';
+
+export {DEMO_SEGMENTS,validateLesson,gapForMode,planPhonemePlayback,playPhonemes} from './phonemeBlending.ts';
+export type {PhonemeSegment,PhonemeLesson,PhonemePlaybackPlan,PlaybackAdapter,PlaybackUnit} from './phonemeBlending.ts';
