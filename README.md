@@ -1,38 +1,34 @@
 # WordPath: Phonics, Reading and Spelling
 
-**Human voice requirement:** Only actual, rights-cleared, editor-approved human voice recordings may be played. The previous device TTS has been removed; recordings are not included yet. See [human audio policy](docs/HUMAN_VOICE_POLICY.md).
+A cross-platform spelling and phonics product, with React Native/Expo mobile learning and a Next.js browser preview/admin foundation.
 
-Cross-platform Expo / React Native mobile prototype for a structured phonics and letter-building learning pathway. The full requirements are in [the Master Development Blueprint](Spelling_Phonics_App_AI_Development_Blueprint.md).
+**Human voice requirement:** All spoken instruction and words must be authentic, editor-approved human recordings. No AI voices, voice cloning, or text-to-speech fallback. Real recordings are still needed and the demo currently displays written prompts.
+
+## Live web project
+
+The owner-designated website is `https://game-for-kids-seven.vercel.app/`. This is **not** a claim the current domain is already serving the new app. Configure its Vercel project using [web deployment and secure admin instructions](docs/WEB_VERCEL_SETUP.md), then merge and deploy the new code.
+
+## Monorepo
+
+- `apps/mobile` — Expo React Native mobile learning demo
+- `apps/web` — Next.js homepage, /play browser game, /admin secure word draft management
+- `packages/core` — shared spelling engine, game state, phonics/audio validation
+- `supabase/migrations` — secure administrator membership and draft-only word library
 
 ## Developer quick start
 
 ```sh
 npm install
 npm test
-npm run typecheck
-npm run start -w @wordpath/mobile
+npm run typecheck -w @wordpath/web
+npm run build:web
+npm run dev:web
 ```
 
-Use Node 22 and an Expo SDK 54-compatible Expo Go or development client. The current sample lessons are local and use synthesized device speech, with only four development-only sample words. Parent-controlled accounts, a publishing admin, teacher-reviewed audio/media, content sync and app-store readiness are **not yet delivered**.
+The web demo requires no Supabase credentials. Admin login and draft management require the migration and public Supabase environment settings.
 
-See [drag and offline session milestone](docs/OFFLINE_DRAG_MILESTONE.md) for what works, what was tested, and the next tasks.
+See [the Master Development Blueprint](Spelling_Phonics_App_AI_Development_Blueprint.md) for the complete product specification and [human audio policy](docs/HUMAN_VOICE_POLICY.md) for recording requirements.
 
-## Development instructions
+## Project stage
 
-Build the complete Apple and Android phonics, reading, and spelling application using the attached Master Development Blueprint as the authoritative specification.
-
-Read the entire document before writing code.
-
-Follow its requirements carefully, especially the combination of the two original educational toys, the structured phonics learning pathway, 2–10 letter drag-and-drop spelling, and the admin dashboard that allows me to add and publish new words without updating the app.
-
-Use React Native, Expo, TypeScript, Supabase, and Next.js as specified.
-
-Start by establishing the project architecture, then implement the first fully playable learning experience. Continue development in the phases defined in the blueprint.
-
-Do not create mock screens with nonfunctional buttons. Implement real features, database migrations, permissions, and automated tests.
-
-Do not remove or simplify requirements without explaining the technical reason. Keep the app suitable for children, teenagers, and adults, with different interfaces but one shared learning system.
-
-Report what has actually been implemented, what has been tested, and what remains incomplete. Do not claim success without verifying it.
-
-Start with Phase 0 and Phase 1 of the attached blueprint.
+The web demo currently contains four development sample words, placeholder emoji clues, and text phonics. This is *not* the full lesson pathway, not the final narrated curriculum, and not ready for App Store/Play Store release. The admin creates/edits/archives drafts but cannot publish content until reviewed real-human recordings and media are integrated.
