@@ -24,3 +24,8 @@ export function apply(state:WordState,action:Place):WordState {
 }
 export function nextHint(state:WordState):string {const hints=['Replay the word and listen carefully.','Look at the first sound and letter.','Try the first letter shown below.','Study the full word, then try again.'];const n=Math.min(state.hints,hints.length-1);return n===2?'The word begins with '+state.answer[0]+'.':n===3?'The word is '+state.answer+'.':hints[n];}
 export function result(state:WordState){return {correct:isCorrect(state),independent:isCorrect(state)&&state.hints===0&&state.checks<=1,hints:state.hints};}
+
+export {contains,resolveDrop} from './geometry.ts';
+export type {Rectangle,DropTarget} from './geometry.ts';
+export {newSession,restoreSession,serializeSession} from './session.ts';
+export type {SavedSession,Phase,Presentation} from './session.ts';

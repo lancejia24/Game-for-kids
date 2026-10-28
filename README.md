@@ -1,3 +1,22 @@
+# WordPath: Phonics, Reading and Spelling
+
+Cross-platform Expo / React Native mobile prototype for a structured phonics and letter-building learning pathway. The full requirements are in [the Master Development Blueprint](Spelling_Phonics_App_AI_Development_Blueprint.md).
+
+## Developer quick start
+
+```sh
+npm install
+npm test
+npm run typecheck
+npm run start -w @wordpath/mobile
+```
+
+Use Node 22 and an Expo SDK 54-compatible Expo Go or development client. The current sample lessons are local and use synthesized device speech, with only four development-only sample words. Parent-controlled accounts, a publishing admin, teacher-reviewed audio/media, content sync and app-store readiness are **not yet delivered**.
+
+See [drag and offline session milestone](docs/OFFLINE_DRAG_MILESTONE.md) for what works, what was tested, and the next tasks.
+
+## Development instructions
+
 Build the complete Apple and Android phonics, reading, and spelling application using the attached Master Development Blueprint as the authoritative specification.
 
 Read the entire document before writing code.
