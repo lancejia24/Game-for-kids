@@ -34,3 +34,14 @@
 .age-adults .choice-tile{border-radius:8px}
 @media(max-width:520px){.age-kids .play-card{padding:14px 8px}.age-kids .slot-row{gap:3px}.age-kids .answer-slot{width:clamp(40px,9.5vw,62px)}.age-kids .pathway-stages{grid-template-columns:repeat(2,minmax(0,1fr))}.journey-toolbar{gap:8px}}
 @media(prefers-reduced-motion:reduce){.play-shell{transition:none}}
+
+.blend-lab{margin:18px auto 24px;padding:18px 12px;border:2px solid #bed7ee;border-radius:22px;background:#f3faff;text-align:center;max-width:600px}
+.blend-lab h3{font-size:clamp(18px,3vw,23px);margin:0 0 7px;color:#244a77}
+.blend-lab>p{font-size:14px;line-height:1.55;color:#4d6581}
+.blend-track{display:flex;flex-wrap:wrap;gap:5px;align-items:center;justify-content:center;margin:16px auto;padding:5px;touch-action:none;user-select:none}
+.blend-sound{font-size:clamp(19px,4vw,28px);font-weight:900;border:2px solid #709cca;border-radius:15px;min-width:clamp(41px,8.4vw,64px);height:65px;background:white;color:#214a74;cursor:pointer;touch-action:none;transition:background .12s ease,transform .12s ease}
+.blend-sound.heard{background:#e0f1ff}.blend-sound.sounding{background:#ffd56d;border-color:#bd7d20;transform:translateY(-4px)}
+.blend-sound:focus-visible,.blend-replay:focus-visible{outline:3px solid #df8d12;outline-offset:2px}
+.blend-replay{padding:11px 21px;background:#2865b2;border:0;border-radius:14px;color:white;min-height:48px;font-weight:750;cursor:pointer}
+.blend-replay:disabled{opacity:.6;cursor:not-allowed}
+@media(prefers-reduced-motion:reduce){.blend-sound{transition:none}.blend-sound.sounding{transform:none}}
