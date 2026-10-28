@@ -1,7 +1,8 @@
 import type {Metadata} from 'next';
 import {isSupabaseConfigured} from '../../lib/supabase-server';
 import {requireAdmin} from '../../lib/admin';
-import {archiveDraftAction,createDraftAction,logoutAction,updateDraftAction} from './actions';
+import {archiveDraftAction,createDraftAction,logoutAction,updateDraftAction,importCandidateDraftAction} from './actions';
+import {CURRICULUM_CANDIDATES} from '@wordpath/core';
 import Link from 'next/link';
 export const dynamic='force-dynamic';
 export const metadata:Metadata={title:'Admin | Word library',robots:{index:false,follow:false}};
@@ -12,7 +13,7 @@ export default async function Admin({searchParams}:{searchParams:Promise<{notice
  const {data,error}=await client.from('wordpath_words').select('id,word_text,short_definition,example_sentence,category,status,created_at').order('created_at',{ascending:false}).limit(100);
  const words=(data??[]) as WordRow[];
  const params=await searchParams;
- const notices:Record<string,string>={created:'Draft word created.',updated:'Draft updated.',archived:'Draft archived.'};
+ const notices:Record<string,string>={created:'Draft word created.',imported:'Candidate copied into draft library for review.',updated:'Draft updated.',archived:'Draft archived.'};
  const errors:Record<string,string>={invalid:'Please check the word, definition, example, and category.',duplicate:'That word is already in the library.',save:'The change was not saved. Verify your Supabase setup and try again.'};
  return <div className="section-width" style={{paddingBottom:80}}>
   <div className="page-intro"><p className="eyebrow">SECURE CONTENT MANAGEMENT</p><h1>Word library</h1><p>Create and revise draft word entries. Only authenticated, approved administrators can view or change them.</p>
@@ -21,6 +22,20 @@ export default async function Admin({searchParams}:{searchParams:Promise<{notice
   <div className="development-warning">Publication is disabled until original images, 100% human-recorded voice clips, educational review, asset licensing, and safe release synchronization are in place. Drafts do not appear in the learner’s lessons.</div>
   {params.notice&&notices[params.notice]?<p className="notice" role="status">{notices[params.notice]}</p>:null}
   {params.error&&errors[params.error]?<p className="notice error" role="alert">{errors[params.error]}</p>:null}
+  <section className="panel" style={{marginTop:24}}>
+    <h2>Starter curriculum candidates ({CURRICULUM_CANDIDATES.length})</h2>
+    <p>These word suggestions are NOT reviewed or published. Import one into drafts, then check its meaning, age suitability, phonics, IPA, artwork and voice recording before future publication.</p>
+    <div className="word-list">{CURRICULUM_CANDIDATES.map(candidate=>{
+     const already=words.some(row=>row.word_text===candidate.word);
+     return <article className="word-card" key={candidate.word}>
+      <span className="status">{candidate.skill} · candidate</span>
+      <h3>{candidate.word}</h3><p>{candidate.definition}</p><p className="tag">{candidate.category}</p>
+      <form action={importCandidateDraftAction}><input type="hidden" name="candidate" value={candidate.word}/>
+       <button type="submit" disabled={already} className="tool-button">{already?'Already in library':'Copy to drafts'}</button>
+      </form>
+     </article>;
+    })}</div>
+   </section>
   <div className="admin-grid">
    <section className="panel"><h2>Add a draft word</h2>
     <form action={createDraftAction}>

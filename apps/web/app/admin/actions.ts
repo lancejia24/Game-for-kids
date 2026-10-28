@@ -3,6 +3,7 @@ import {redirect} from 'next/navigation';
 import {revalidatePath} from 'next/cache';
 import {createSupabaseServer} from '../../lib/supabase-server';
 import {requireAdmin} from '../../lib/admin';
+import {getCurriculumCandidate} from '@wordpath/core';
 const WORD=/^[A-Z]{2,10}$/;
 function str(data:FormData,key:string,max:number):string{
  const value=data.get(key);
@@ -52,4 +53,18 @@ export async function archiveDraftAction(form:FormData){
  const {data,error}=await client.from('wordpath_words').update({status:'archived'}).eq('id',id).eq('status','draft').select('id').maybeSingle();
  if(error||!data)redirect('/admin?error=save');
  revalidatePath('/admin');redirect('/admin?notice=archived');
+}
+
+/** Copy one pre-authored candidate to the admin-only draft library, never publish. */
+export async function importCandidateDraftAction(form:FormData){
+ const {client,user}=await requireAdmin();
+ const word=str(form,'candidate',20).toUpperCase();
+ const candidate=getCurriculumCandidate(word);
+ if(!candidate)redirect('/admin?error=invalid');
+ const {error}=await client.from('wordpath_words').insert({
+  word_text:candidate.word,short_definition:candidate.definition,
+  category:candidate.category,status:'draft',created_by:user.id
+ });
+ if(error)redirect(error.code==='23505'?'/admin?error=duplicate':'/admin?error=save');
+ revalidatePath('/admin');redirect('/admin?notice=imported');
 }
