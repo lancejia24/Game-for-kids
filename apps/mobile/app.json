@@ -1,0 +1,1 @@
+{"expo":{"name":"WordPath","slug":"wordpath","scheme":"wordpath","version":"0.1.0","orientation":"default","userInterfaceStyle":"automatic","plugins":["expo-router"],"ios":{"supportsTablet":true},"android":{"package":"com.wordpath.learning"},"experiments":{"typedRoutes":true}}}
