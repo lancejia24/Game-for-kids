@@ -1,5 +1,5 @@
 import {NextRequest,NextResponse} from 'next/server';
-import {buildSsml,getSpeechEntry} from '@wordpath/core';
+import {approvedAsset,buildSsml,getSpeechEntry} from '@wordpath/core';
 
 export const runtime='nodejs';
 /**
@@ -11,6 +11,8 @@ export async function GET(request:NextRequest){
  if(id.length>80||!getSpeechEntry(id)){
   return NextResponse.json({error:'Unknown approved narration ID'},{status:404,headers:{'Cache-Control':'no-store'}});
  }
+ const saved=approvedAsset(id,'azure-ssml');
+ if(saved)return NextResponse.redirect(new URL(saved.path,request.url),{status:307});
  const key=process.env.AZURE_SPEECH_KEY;
  const region=process.env.AZURE_SPEECH_REGION??'';
  const enabled=process.env.WORDPATH_ENABLE_SYNTHETIC_NARRATION==='true';

@@ -22,5 +22,7 @@ jobs:
         run: npm test
       - name: Typecheck web
         run: npm run typecheck -w @wordpath/web
+      - name: Verify GitHub audio manifests and MP3 hashes
+        run: node --experimental-strip-types scripts/verify-audio.mjs
       - name: Build Next.js web app from root
         run: npm run build

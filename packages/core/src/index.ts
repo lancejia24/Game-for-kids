@@ -35,3 +35,6 @@ export type {HumanClipKind,HumanClipMetadata} from './humanAudio.ts';
 
 export {allSpeechIds,getSpeechEntry,xmlEscape,buildSsml} from './speech.ts';
 export type {SpeechPiece,SpeechEntry} from './speech.ts';
+
+export {AUDIO_LIBRARY,isValidAsset,approvedAsset} from './audioLibrary.ts';
+export type {AudioAsset,AudioManifest,AudioProvenance} from './audioLibrary.ts';
