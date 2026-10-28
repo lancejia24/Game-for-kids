@@ -71,7 +71,7 @@ export function SwipeBlend({word,enabled}:{word:string;enabled:boolean}){
    onPointerCancel={end}
   >{segments.map((segment,index)=><button type="button" key={index} data-blend-index={index}
     className={'blend-sound'+(active===index?' sounding':'')+(visited.includes(index)?' heard':'')}
-    aria-label={'Hear sound '+(index+1)+' '+segment.grapheme} onClick={()=>{if(!swipe.current)announce(index);}}>
+    aria-label={'Hear sound '+(index+1)+' '+segment.grapheme} onClick={e=>{if(e.detail===0)announce(index);}}>
     {segment.grapheme}
    </button>)}</div>
   <button type="button" className="blend-replay" onClick={()=>speak(word.toLowerCase(),0.7)} disabled={!enabled}>🔊 Hear {word}</button>
