@@ -29,3 +29,6 @@ export {contains,resolveDrop} from './geometry.ts';
 export type {Rectangle,DropTarget} from './geometry.ts';
 export {newSession,restoreSession,serializeSession} from './session.ts';
 export type {SavedSession,Phase,Presentation} from './session.ts';
+
+export {isApprovedHumanClipMetadata} from './humanAudio.ts';
+export type {HumanClipKind,HumanClipMetadata} from './humanAudio.ts';

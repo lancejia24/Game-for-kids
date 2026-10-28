@@ -1,5 +1,7 @@
 # WordPath: Phonics, Reading and Spelling
 
+**Human voice requirement:** Only actual, rights-cleared, editor-approved human voice recordings may be played. The previous device TTS has been removed; recordings are not included yet. See [human audio policy](docs/HUMAN_VOICE_POLICY.md).
+
 Cross-platform Expo / React Native mobile prototype for a structured phonics and letter-building learning pathway. The full requirements are in [the Master Development Blueprint](Spelling_Phonics_App_AI_Development_Blueprint.md).
 
 ## Developer quick start
