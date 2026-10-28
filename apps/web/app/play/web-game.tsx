@@ -104,7 +104,7 @@ export function WebGame(){
    </button>
    <button className="tool-button" disabled={!narration.enabled} onClick={()=>narration.play(currentClip)}>Replay spoken instruction</button>
   </div>
-  <p className={'tiny-caption audio-disclosure'+(mode==='Kids'&&!showTools?' collapsed':'')}>Optional SSML narration is synthesized, not human-recorded. It requires an Azure Speech connection.</p>
+  <p className={'tiny-caption audio-disclosure'+(mode==='Kids'&&!showTools?' collapsed':'')}>Audio uses approved recordings when available, otherwise a free synthetic voice supplied by your device. Voice quality varies by browser.</p>
   {narration.error?<p className="play-warning" role="status">{narration.error}</p>:null}
   <div className="journey-toolbar"><span role="status">{pathProgress.records.filter(r=>r.independent>=2).length} / {STARTER_PATH.length} stages mastered</span><button type="button" className="journey-toggle" aria-expanded={mode!=='Kids'||showJourney} onClick={()=>setShowJourney(v=>!v)}>{mode==='Kids'?(showJourney?'Hide my map':'🗺️ My adventure map'):showJourney?'Hide progress details':'Show progress details'}</button></div>
   <section className={'pathway-panel'+(mode==='Kids'&&!showJourney?' collapsed':'')+(mode!=='Kids'&&!showJourney?' compact-journey':'')} aria-label="Learning pathway progress">
@@ -156,7 +156,7 @@ export function WebGame(){
     <button className="tool-button" onClick={()=>change({kind:'reset'})}>Reset tiles</button>
     <button className="button primary" disabled={state.slots.some(slot=>slot===null)} onClick={check}>Check word</button>
    </div>
-   <div className="human-audio-note">Only verified local/open-source or human-recorded audio is available. Missing recordings remain silent.</div>
+   <div className="human-audio-note">Saved recordings play first. When unavailable, an optional synthetic voice from your device reads instructions.</div>
   </>:null}
   {phase==='meaning'?<div className="play-success" aria-live="polite">
    <InteractiveCharacter key={'success-'+lesson.word} word={lesson.word} unlocked/>
