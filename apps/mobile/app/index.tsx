@@ -1,7 +1,7 @@
 import React,{useEffect,useRef,useState} from 'react';
 import {View,Text,ScrollView,Pressable,StyleSheet,useWindowDimensions} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import * as Speech from 'expo-speech';
+import {HumanAudioButton} from '../src/audio/HumanAudioButton';
 import {apply,isCorrect,newSession,nextHint,resolveDrop,startWord,type Rectangle,type SavedSession} from '@wordpath/core';
 import {DraggableTile} from '../src/components/DraggableTile';
 import {STARTER_LESSONS,STARTER_WORDS} from '../src/data/starterLessons';
@@ -34,7 +34,6 @@ export default function Game(){
   return ()=>{mounted=false;};
  },[]);
  useEffect(()=>{if(ready){saveSession(session).catch(()=>setStorageWarning(true));}},[ready,session]);
- const say=(value:string)=>{Speech.stop();Speech.speak(value,{rate:0.84,language:'en-US'});};
  const changeState=(action:Parameters<typeof apply>[1])=>setSession(current=>({...current,state:apply(current.state,action)}));
  const move=(id:string,slot:number)=>changeState({kind:'place',tileId:id,slot});
  const pick=(id:string)=>setSession(current=>({...current,state:apply(current.state,{kind:'select',tileId:current.state.selected===id?null:id})}));
@@ -58,14 +57,13 @@ export default function Game(){
  const check=()=>{
   if(!isCorrect(state)){
    changeState({kind:'check'});
-   setMessage('Not quite. Listen again and rearrange the letters.');
-   say(lesson.word);return;
+   setMessage('Not quite. Review the word and rearrange the letters.');
+   return;
   }
   setSession(current=>({
    ...current,phase:'meaning',state:apply(current.state,{kind:'check'}),
    completedWords:current.completedWords.includes(lesson.word)?current.completedWords:[...current.completedWords,lesson.word]
   }));
-  say(lesson.word+'. '+lesson.meaning);
  };
  const button=(label:string,action:()=>void,disabled=false)=><Pressable accessibilityRole="button" accessibilityLabel={label} disabled={disabled} onPress={action} style={[styles.button,disabled&&styles.disabled]}><Text style={styles.buttonText}>{label}</Text></Pressable>;
  const slotRows=[];
@@ -87,16 +85,17 @@ export default function Game(){
   {ready&&phase==='sound'?<View style={styles.card}>
    <Text style={styles.heading}>Hear the sound</Text>
    <Text style={styles.prompt}>{lesson.prompt}</Text>
-   {button('🔊 Replay instruction',()=>say(lesson.prompt))}
+   <HumanAudioButton key={lesson.word+':prompt'} clipId={lesson.word+':prompt'} label="Play recorded human instruction"/>
    <View style={styles.choices}>{lesson.choices.map(c=><Pressable accessibilityRole="button" accessibilityLabel={'Choose '+c} key={c} style={[styles.choice,choice===c&&styles.selected]} onPress={()=>{
-    update({choice:c});if(c===lesson.sound){setMessage(lesson.phonics);say(lesson.phonics);}else{setMessage('Try again. Replay the instruction.');}
+    update({choice:c});if(c===lesson.sound){setMessage(lesson.phonics);}else{setMessage('Try again. Review the instruction.');}
    }}><Text style={styles.letter}>{c}</Text></Pressable>)}</View>
    <Text style={styles.info}>{message}</Text>
-   {button('Continue to spelling',()=>{update({phase:'spell'});setMessage('Tap a letter and then a slot, or drag it to the slot.');say(lesson.word);},choice!==lesson.sound)}
+   {choice===lesson.sound?<HumanAudioButton key={lesson.word+':phonics'} clipId={lesson.word+':phonics'} label="Hear human phonics explanation"/>:null}
+   {button('Continue to spelling',()=>{update({phase:'spell'});setMessage('Tap a letter and then a slot, or drag it to the slot.');},choice!==lesson.sound)}
   </View>:null}
   {ready&&phase==='spell'?<View style={styles.card}>
    <Text style={styles.heading}>Build the word</Text><Text style={styles.picture}>{lesson.icon}</Text>
-   <Text style={styles.prompt}>What word is this?</Text>{button('🔊 Hear the word',()=>say(lesson.word))}
+   <Text style={styles.prompt}>What word is this?</Text><HumanAudioButton key={lesson.word+':word'} clipId={lesson.word+':word'} label="Hear human recording of the word"/>
    <View style={styles.answer}>{slotRows}</View>
    <Text style={styles.prompt}>Move the letter tiles into the answer slots</Text>
    <View ref={view=>{trayRef.current=view;}} collapsable={false} style={styles.tray}>
@@ -117,7 +116,8 @@ export default function Game(){
    <Text style={styles.picture}>{lesson.icon}</Text><Text style={styles.heading}>{lesson.word}</Text>
    <Text style={styles.prompt}>{lesson.meaning}</Text><Text style={styles.info}>{lesson.phonics}</Text>
    <Text style={styles.note}>{state.hints>0?'Completed with help. Keep practicing for independent mastery!':'Completed without hints.'}</Text>
-   {button('🔊 Replay',()=>say(lesson.word+'. '+lesson.meaning))}
+   <HumanAudioButton key={lesson.word+':meaning'} clipId={lesson.word+':meaning'} label="Hear human-recorded definition"/>
+   <HumanAudioButton key={lesson.word+':word-result'} clipId={lesson.word+':word'} label="Replay the human-recorded word"/>
    {button(step===STARTER_LESSONS.length-1?'Finish lesson':'Next word',advance)}
   </View>:null}
   {ready&&phase==='done'?<View style={styles.card}>
@@ -126,7 +126,7 @@ export default function Game(){
    {button('Play again',()=>{const fresh=newSession(STARTER_WORDS);update({...fresh,mode});setMessage('Choose the letters that match the sound.');})}
   </View>:null}
   {storageWarning?<Text style={styles.warning}>Unable to access local lesson storage. You can still play, but this session might not be saved.</Text>:null}
-  <Text style={styles.note}>Offline guest demo. Device speech and emoji art are development-only, not reviewed educational media. No account, chat, ads or cloud sync.</Text>
+  <Text style={styles.note}>Offline guest demo. Human-recorded audio only: recordings are not yet provided, so this starter currently offers on-screen text without spoken playback. Emoji artwork is development-only.</Text>
  </ScrollView></SafeAreaView>;
 }
 const styles=StyleSheet.create({
