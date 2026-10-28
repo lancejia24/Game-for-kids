@@ -1,6 +1,6 @@
 'use client';
 import React,{useEffect,useRef,useState} from 'react';
-import {apply,isCorrect,nextHint,newSession,restoreSession,resolveDrop,serializeSession,startWord,type SavedSession,type Tile,type Place,type Rectangle} from '@wordpath/core';
+import {apply,isCorrect,nextHint,newSession,restoreSession,resolveDrop,serializeSession,startWord,type SavedSession,type Tile,type Place,type Rectangle,STARTER_PATH,blankProgress,recordAttempt,safeRestoreProgress,mastered,recommendedLesson,type LearningProgress} from '@wordpath/core';
 import './play.css';
 import {InteractiveCharacter} from './interactive-character';
 import {useNarration} from './use-narration';
@@ -13,6 +13,7 @@ const LESSONS:readonly Lesson[]=[
 ];
 const WORDS=LESSONS.map(x=>x.word);
 const STORAGE='wordpath:web:guest:v1';
+const PATH_STORAGE='wordpath:web:pathway:v1';
 function rect(el:HTMLElement|null):Rectangle|null{if(!el)return null;const r=el.getBoundingClientRect();return {x:r.left,y:r.top,width:r.width,height:r.height};}
 type DraggableProps={tile:Tile;selected:boolean;onChoose:(id:string)=>void;onMove:(id:string,x:number,y:number)=>void};
 function Draggable({tile,selected,onChoose,onMove}:DraggableProps){
@@ -35,11 +36,13 @@ export function WebGame(){
  const [session,setSession]=useState<SavedSession|null>(null);
  const [feedback,setFeedback]=useState('Choose the correct letters.');
  const [storageError,setStorageError]=useState(false);
+ const [pathProgress,setPathProgress]=useState<LearningProgress>(blankProgress);
  const narration=useNarration();
  const slotsRef=useRef<(HTMLDivElement|null)[]>([]);
  const trayRef=useRef<HTMLDivElement|null>(null);
- useEffect(()=>{try{const stored=window.localStorage.getItem(STORAGE);setSession(restoreSession(stored,WORDS)??newSession(WORDS));}catch{setStorageError(true);setSession(newSession(WORDS));}},[]);
+ useEffect(()=>{try{const stored=window.localStorage.getItem(STORAGE);setSession(restoreSession(stored,WORDS)??newSession(WORDS));setPathProgress(safeRestoreProgress(window.localStorage.getItem(PATH_STORAGE),WORDS));}catch{setStorageError(true);setSession(newSession(WORDS));}},[]);
  useEffect(()=>{if(session){try{window.localStorage.setItem(STORAGE,serializeSession(session));}catch{setStorageError(true);}}},[session]);
+ useEffect(()=>{if(session){try{window.localStorage.setItem(PATH_STORAGE,JSON.stringify(pathProgress));}catch{setStorageError(true);}}},[pathProgress,session]);
  const currentWord=session?LESSONS[session.step].word:'CAT';
  const currentClip=session?.phase==='sound'?currentWord+':prompt':session?.phase==='spell'?currentWord+':spell':session?.phase==='meaning'?currentWord+':meaning':'game:complete';
  const narrationOn=narration.enabled;
@@ -71,12 +74,17 @@ export function WebGame(){
  };
  const check=()=>{
   if(isCorrect(state)){
+   setPathProgress(p=>recordAttempt(p,lesson.word,state.hints===0&&state.checks===0?'independent':'assisted'));
    setSession(s=>s?{...s,phase:'meaning',state:apply(s.state,{kind:'check'}),completedWords:s.completedWords.includes(lesson.word)?s.completedWords:[...s.completedWords,lesson.word]}:s);
   }else{
+   setPathProgress(p=>recordAttempt(p,lesson.word,'incorrect'));
    change({kind:'check'});setFeedback('Not quite. Try moving or swapping a letter.');if(narration.enabled)narration.play('game:retry');
   }
  };
  const resetProgress=()=>{const replacement=newSession(WORDS);patch({...replacement,mode});setFeedback('Your demo has been reset.');if(narration.enabled)narration.play('game:reset');};
+ const clearMastery=()=>{setPathProgress(blankProgress());resetProgress();};
+ const practice=(word:string)=>{const ix=WORDS.indexOf(word);if(ix<0)return;patch({step:ix,phase:'sound',choice:null,state:startWord(word)});setFeedback('Practice this word to build independent mastery.');};
+ const recommended=recommendedLesson(pathProgress);
  const tileCount=state.slots.length;
  return <div className="play-shell">
   <div className="play-heading"><p className="eyebrow">A PLAYABLE DEVELOPMENT PREVIEW</p><h1>Build a word. Learn a sound.</h1><p>Four sample challenges. No login, no ads, and your practice stays in this browser.</p></div>
@@ -91,7 +99,21 @@ export function WebGame(){
   </div>
   <p className="tiny-caption">SSML voice is synthesized, not a human recording. Narration requires an Azure Speech connection.</p>
   {narration.error?<p className="play-warning" role="status">{narration.error}</p>:null}
-  <div className="step-count">Word {step+1} of {LESSONS.length} · {mode} Mode</div>
+  <section className="pathway-panel" aria-label="Learning pathway progress">
+    <h2>My learning journey</h2><p>Finish each word independently twice to master it. Hints help you learn but do not count as independent mastery.</p>
+    <div className="pathway-stages">{STARTER_PATH.map((item,i)=>{
+      const complete=mastered(pathProgress,item.word);
+      const count=pathProgress.records.find(r=>r.word===item.word)?.independent??0;
+      const open=item.prerequisites.every(word=>mastered(pathProgress,word));
+      return <button type="button" key={item.word} className={'pathway-stage'+(complete?' complete':'')} disabled={!open} onClick={()=>practice(item.word)} aria-label={item.word+': '+(complete?'mastered':open?'practice available':'locked') }>
+       <span>{complete?'⭐':open?'🎯':'🔒'} Stage {i+1}</span><strong>{item.word}</strong><small>{Math.min(count,2)}/2 independent</small>
+      </button>;
+    })}</div>
+    <div className="tool-actions"><span className="tiny-caption">{recommended?'Recommended next: '+recommended.word+' ('+recommended.goal+')':'All starter stages mastered!'}</span>
+    {recommended?<button className="tool-button" onClick={()=>practice(recommended.word)}>Practice recommended word</button>:null}
+    <button className="tool-button" onClick={clearMastery}>Clear pathway progress</button></div>
+   </section>
+   <div className="step-count">Word {step+1} of {LESSONS.length} · {mode} Mode</div>
   <div className="play-card">
   {phase==='sound'?<>
    <h2 className="play-title">1. Recognize the sound</h2>
