@@ -2,79 +2,63 @@
 import React,{useCallback,useEffect,useRef,useState} from 'react';
 import {DEMO_SEGMENTS} from '@wordpath/core';
 
-/** Development-only spoken cues. They are not approved isolated phoneme audio. */
-const CUES:Record<string,string>={
- C:'kuh',A:'a',T:'tuh',F:'fff',I:'ih',SH:'shhh',
- B:'buh',N:'nnn',S:'sss',R:'rrr',W:'wuh',E:'eh',Y:'ee',H:'hhh'
-};
-type Segment={grapheme:string;cue:string};
-function segmentsFor(word:string):Segment[]{
- const authored=DEMO_SEGMENTS.find(x=>x.word===word);
- if(authored)return authored.segments.map(x=>({grapheme:x.grapheme,cue:CUES[x.grapheme]??x.grapheme.toLowerCase()}));
- // Other sample words: letter-by-letter demo cues, NOT accurate GPC transcription.
- return [...word].map(grapheme=>({grapheme,cue:CUES[grapheme]??grapheme.toLowerCase()}));
+/**
+ * We intentionally do NOT pronounce isolated phonemes with browser TTS.
+ * Approximation syllables such as "kuh"/"tuh" add erroneous schwas and are
+ * damaging phonics cues. Real, reviewed phoneme recordings are required.
+ */
+function soundGroups(word:string):string[]{
+ const lesson=DEMO_SEGMENTS.find(x=>x.word===word);
+ return lesson?lesson.segments.map(x=>x.grapheme):[...word];
 }
 export function SwipeBlend({word,enabled}:{word:string;enabled:boolean}){
- const segments=segmentsFor(word);
+ const groups=soundGroups(word);
  const [active,setActive]=useState(-1);
  const [visited,setVisited]=useState<number[]>([]);
- const swipe=useRef<{pointerId:number;visited:Set<number>;last:number}|null>(null);
- const speak=useCallback((text:string,rate=0.75)=>{
+ const gesture=useRef<{id:number;last:number;seen:Set<number>}|null>(null);
+ const speakWord=useCallback(()=>{
   if(!enabled||typeof window==='undefined'||!('speechSynthesis' in window))return;
   window.speechSynthesis.cancel();
-  const line=new SpeechSynthesisUtterance(text);
-  line.lang='en-US';line.rate=rate;
+  const line=new SpeechSynthesisUtterance(word.toLowerCase());
+  line.lang='en-US';line.rate=.8;
   window.speechSynthesis.speak(line);
- },[enabled]);
- const announce=useCallback((index:number)=>{
-  setActive(index);
-  speak(segments[index]?.cue??'',0.72);
- },[segments, speak]);
+ },[enabled,word]);
+ useEffect(()=>{setActive(-1);setVisited([]);gesture.current=null;},[word]);
  useEffect(()=>()=>{if(typeof window!=='undefined'&&'speechSynthesis' in window)window.speechSynthesis.cancel();},[]);
- useEffect(()=>{setActive(-1);setVisited([]);swipe.current=null;},[word]);
- const indexAt=(x:number,y:number):number=>{
-  const target=document.elementFromPoint(x,y);
-  const segment=target?.closest('[data-blend-index]');
-  if(!segment)return -1;
-  const index=Number(segment.getAttribute('data-blend-index'));
-  return Number.isInteger(index)&&index>=0&&index<segments.length?index:-1;
+ const indexAt=(x:number,y:number)=>{
+  const el=document.elementFromPoint(x,y)?.closest('[data-blend-index]');
+  const index=el?Number(el.getAttribute('data-blend-index')):-1;
+  return Number.isInteger(index)&&index>=0&&index<groups.length?index:-1;
  };
  const step=(index:number)=>{
-  const current=swipe.current;
-  if(!current||index<0||index===current.last)return;
-  // Only move forward to adjacent sounds. Reverse sweeps reset gracefully.
-  if(current.last>=0&&index!==current.last+1)return;
-  current.last=index;current.visited.add(index);
-  setVisited([...current.visited]);announce(index);
+  const g=gesture.current;
+  if(!g||index<0||index===g.last)return;
+  if(g.last>=0&&index!==g.last+1)return;
+  g.last=index;g.seen.add(index);setVisited([...g.seen]);setActive(index);
  };
  const end=()=>{
-  const current=swipe.current;swipe.current=null;
-  if(!current)return;
-  if(current.visited.size===segments.length&&current.last===segments.length-1){
-   setActive(-1);
-   speak(word.toLowerCase(),0.68);
-  }else setActive(-1);
+  const g=gesture.current;gesture.current=null;setActive(-1);
+  if(g&&g.seen.size===groups.length&&g.last===groups.length-1)speakWord();
  };
- return <section className="blend-lab" aria-label={'Listen and blend '+word}>
-  <h3>👆 Touch each sound, then slide across!</h3>
-  <p>Tap a sound to hear it. Swipe left to right without lifting your finger to hear the sounds followed by the whole word.</p>
-  <div className="blend-track" role="group" aria-label={'Sounds for '+word}
+ return <section className="blend-lab" aria-label={'Practice sounds and blend '+word}>
+  <h3>👆 Trace across the sounds</h3>
+  <p>Tap a letter group to highlight it. Slide from left to right to follow the word, then hear the whole word.</p>
+  <div className="blend-track" role="group" aria-label={'Sound groups of '+word}
    onPointerDown={e=>{
     if(e.pointerType==='mouse'&&e.button!==0)return;
     const index=indexAt(e.clientX,e.clientY);
     if(index<0)return;
     e.preventDefault();e.currentTarget.setPointerCapture(e.pointerId);
-    swipe.current={pointerId:e.pointerId,visited:new Set(),last:-1};step(index);
+    gesture.current={id:e.pointerId,last:-1,seen:new Set()};step(index);
    }}
-   onPointerMove={e=>{if(swipe.current?.pointerId!==e.pointerId)return;step(indexAt(e.clientX,e.clientY));}}
-   onPointerUp={e=>{if(swipe.current?.pointerId===e.pointerId)end();}}
+   onPointerMove={e=>{if(gesture.current?.id===e.pointerId)step(indexAt(e.clientX,e.clientY));}}
+   onPointerUp={e=>{if(gesture.current?.id===e.pointerId)end();}}
    onPointerCancel={end}
-  >{segments.map((segment,index)=><button type="button" key={index} data-blend-index={index}
-    className={'blend-sound'+(active===index?' sounding':'')+(visited.includes(index)?' heard':'')}
-    aria-label={'Hear sound '+(index+1)+' '+segment.grapheme} onClick={e=>{if(e.detail===0)announce(index);}}>
-    {segment.grapheme}
-   </button>)}</div>
-  <button type="button" className="blend-replay" onClick={()=>speak(word.toLowerCase(),0.7)} disabled={!enabled}>🔊 Hear {word}</button>
-  <p className="tiny-caption">{enabled?'Temporary device voice: approximated sound cues, not educator-reviewed phonemes.':'Enable saved audio / device voice above to hear sounds.'} Real reviewed phoneme recordings will replace these cues.</p>
+  >{groups.map((group,index)=><button type="button" key={index} data-blend-index={index}
+   className={'blend-sound'+(active===index?' sounding':'')+(visited.includes(index)?' heard':'')}
+   aria-label={'Highlight sound group '+(index+1)+' '+group}
+   onClick={e=>{if(e.detail===0){setActive(index);setVisited([index]);}}}>{group}</button>)}</div>
+  <button type="button" className="blend-replay" onClick={speakWord} disabled={!enabled}>🔊 Hear {word}</button>
+  <p className="tiny-caption">Individual sound audio is temporarily unavailable until verified phoneme recordings are added. The whole-word voice is synthetic and may vary by device. We will not teach incorrect “kuh” or “tuh” sounds.</p>
  </section>;
 }
