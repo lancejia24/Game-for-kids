@@ -1,0 +1,24 @@
+name: WordPath web checks
+on:
+  push:
+    branches: [main, 'feat/**']
+  pull_request:
+    branches: [main]
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install workspaces
+        run: npm install --no-audit --no-fund
+      - name: Check shared game engine
+        run: npm test
+      - name: Typecheck web
+        run: npm run typecheck -w @wordpath/web
+      - name: Build Next.js web app
+        run: npm run build:web

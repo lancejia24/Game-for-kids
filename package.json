@@ -1,1 +1,15 @@
-{"name":"wordpath","private":true,"packageManager":"npm@10.9.2","workspaces":["apps/*","packages/*"],"scripts":{"test":"npm run test -w @wordpath/core","typecheck":"npm run typecheck -w @wordpath/core"}}
+{
+  "name": "wordpath",
+  "private": true,
+  "packageManager": "npm@10.9.2",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "test": "npm run test -w @wordpath/core",
+    "typecheck": "npm run typecheck -w @wordpath/core",
+    "build:web": "npm run build -w @wordpath/web",
+    "dev:web": "npm run dev -w @wordpath/web"
+  }
+}
