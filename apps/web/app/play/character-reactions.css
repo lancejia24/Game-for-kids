@@ -1,0 +1,33 @@
+/* Gentle game-character reactions: pointer, keyboard, touch; no flashing or timers. */
+.character-wrap{text-align:center;margin:8px auto 18px;max-width:430px}
+.character-button{appearance:none;border:0;background:transparent;display:block;margin:0 auto;padding:5px;cursor:pointer;border-radius:26px;max-width:100%;touch-action:manipulation}
+.character-button:hover{background:#eef7ff}
+.character-button:focus-visible{outline:4px solid #f1b34c;outline-offset:4px}
+.character-stage{display:block;width:220px;height:218px;position:relative;animation:character-entry .55s ease-out both}
+.character-button svg{display:block;width:100%;height:100%;overflow:visible}
+.character-caption{color:#526884;font-size:14px;line-height:1.5;margin:7px auto}
+.character-sound-credit{font-size:11px;color:#697b91;margin:6px auto}
+.character-sound-error{font-size:13px;color:#8b422f;margin:6px auto}
+.fruit-sprite{font-size:122px;line-height:216px;display:inline-block;transform-origin:center bottom;animation:fruit-dance .8s ease-in-out}
+.character-cat .reactor-cat{transform-origin:50% 78%;animation:cat-hop .65s ease-in-out}
+.character-cat .cat-tail{transform-origin:78% 75%;animation:cat-tail-swish .42s ease-in-out 2}
+.character-cat .cat-eyes{transform-origin:center;animation:cat-blink .36s ease-in-out .28s}
+.character-fish .reactor-fish{animation:fish-swim 1s ease-in-out}
+.character-fish .fish-tail{transform-origin:29% 50%;animation:fish-tail-wag .27s ease-in-out 4}
+.character-fish .fish-bubbles{animation:fish-bubble-rise 1.15s ease-out both}
+.celebrate-stars{position:absolute;inset:0;pointer-events:none}
+.celebrate-stars i{position:absolute;top:24%;left:6%;font-style:normal;font-size:30px;animation:star-pop 1.15s ease-out both}
+.celebrate-stars i:nth-child(2){left:80%;top:20%;animation-delay:.12s}
+.celebrate-stars i:nth-child(3){left:12%;top:66%;animation-delay:.24s}
+.celebrate-stars i:nth-child(4){left:78%;top:72%;animation-delay:.36s}
+.meow-bubble{position:absolute;top:-3px;right:-24px;padding:8px 14px;color:#503e22;background:#ffeaad;border:2px solid #ecc36d;border-radius:25px;font-weight:850;animation:star-pop .75s both}
+@keyframes character-entry{from{opacity:.7;transform:translateY(14px) scale(.93)}to{opacity:1;transform:none}}
+@keyframes cat-hop{0%,100%{transform:translateY(0)}32%{transform:translateY(-24px) rotate(-4deg)}60%{transform:translateY(0) rotate(4deg)}}
+@keyframes cat-tail-swish{0%,100%{transform:rotate(-9deg)}50%{transform:rotate(12deg)}}
+@keyframes cat-blink{0%,45%,100%{transform:scaleY(1)}60%{transform:scaleY(.15)}}
+@keyframes fish-swim{0%{transform:translateX(-9px) rotate(-6deg)}50%{transform:translateX(14px) rotate(5deg)}100%{transform:translateX(0)}}
+@keyframes fish-tail-wag{0%,100%{transform:rotate(-9deg)}50%{transform:rotate(10deg)}}
+@keyframes fish-bubble-rise{0%{opacity:.5;transform:translateY(18px)}90%{opacity:1}100%{opacity:.6;transform:translateY(-10px)}}
+@keyframes fruit-dance{0%,100%{transform:rotate(0) scale(1)}20%{transform:rotate(-13deg) scale(1.08)}60%{transform:rotate(12deg) scale(1.08)}}
+@keyframes star-pop{0%{opacity:0;transform:scale(.25) translateY(15px)}35%{opacity:1;transform:scale(1.15) translateY(-12px)}80%{opacity:1}100%{opacity:0;transform:scale(.85) translateY(-26px)}}
+@media (prefers-reduced-motion:reduce){.character-stage,.character-cat .reactor-cat,.character-cat .cat-tail,.character-cat .cat-eyes,.character-fish .reactor-fish,.character-fish .fish-tail,.character-fish .fish-bubbles,.fruit-sprite,.celebrate-stars i,.meow-bubble{animation:none!important;transition:none!important}.celebrate-stars i{opacity:1}.character-stage{transform:none;opacity:1}}

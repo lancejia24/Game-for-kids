@@ -2,6 +2,7 @@
 import React,{useEffect,useRef,useState} from 'react';
 import {apply,isCorrect,nextHint,newSession,restoreSession,resolveDrop,serializeSession,startWord,type SavedSession,type Tile,type Place,type Rectangle} from '@wordpath/core';
 import './play.css';
+import {InteractiveCharacter} from './interactive-character';
 type Lesson={word:string;picture:string;question:string;sound:string;choices:readonly string[];phonics:string;meaning:string};
 const LESSONS:readonly Lesson[]=[
  {word:'CAT',picture:'🐈',question:'Which letter spells the first /k/ sound in cat?',sound:'C',choices:['C','M','T'],phonics:'C spells the /k/ sound at the start of CAT.',meaning:'A small animal that often lives with people.'},
@@ -87,7 +88,7 @@ export function WebGame(){
   </>:null}
   {phase==='spell'?<>
    <h2 className="play-title">2. Build the word</h2>
-   <div className="play-emoji" role="img" aria-label={'Picture clue for '+lesson.word}>{lesson.picture}</div>
+   <InteractiveCharacter key={'clue-'+lesson.word} word={lesson.word} unlocked={false}/>
    <p className="play-prompt">Arrange the letters to spell this word.</p>
    <div className="slot-rows" role="group" aria-label="Answer slots">
     {Array.from({length:Math.ceil(tileCount/5)},(_,row)=><div className="slot-row" key={row}>{state.slots.slice(row*5,row*5+5).map((id,i)=>{
@@ -113,8 +114,8 @@ export function WebGame(){
    <div className="human-audio-note">Human narration will be available after reviewed recordings are uploaded. No AI or synthesized voice is used.</div>
   </>:null}
   {phase==='meaning'?<div className="play-success" aria-live="polite">
-   <div className="play-emoji" aria-hidden="true">{lesson.picture}</div>
-   <h2>Wonderful work!</h2><div className="result-word">{lesson.word}</div>
+   <InteractiveCharacter key={'success-'+lesson.word} word={lesson.word} unlocked/>
+   <h2>Wonderful work! 🌟</h2><p className="reactor-unlock">Your character came to life. Tap it again to play!</p><div className="result-word">{lesson.word}</div>
    <p>{lesson.meaning}</p><p>{lesson.phonics}</p>
    <p className="tiny-caption">{state.hints>0?'Completed with help. Practice again for independent mastery.':'Completed without hints.'}</p>
    <button className="button primary" onClick={next}>{step===LESSONS.length-1?'Finish lesson':'Next word'}</button>
@@ -127,6 +128,6 @@ export function WebGame(){
   </div>
   <div className="tool-actions"><button className="tool-button" onClick={resetProgress}>Start this demo over</button></div>
   {storageError?<p className="play-warning" role="alert">Browser storage is unavailable, so this session might not be saved.</p>:null}
-  <p className="tiny-caption">Sample words, emoji illustrations and written prompts are development-only, not final educator-reviewed content.</p>
+  <p className="tiny-caption">Sample words, interactive illustrations and written phonics prompts are development-only. Animal sounds are real recordings; spoken phonics will use only approved human voices.</p>
  </div>;
 }
