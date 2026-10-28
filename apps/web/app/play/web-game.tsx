@@ -16,8 +16,8 @@ const WORDS=LESSONS.map(x=>x.word);
 const STORAGE='wordpath:web:guest:v1';
 const PATH_STORAGE='wordpath:web:pathway:v1';
 function rect(el:HTMLElement|null):Rectangle|null{if(!el)return null;const r=el.getBoundingClientRect();return {x:r.left,y:r.top,width:r.width,height:r.height};}
-type DraggableProps={tile:Tile;selected:boolean;onChoose:(id:string)=>void;onMove:(id:string,x:number,y:number)=>void};
-function Draggable({tile,selected,onChoose,onMove}:DraggableProps){
+type DraggableProps={tile:Tile;selected:boolean;onChoose:(id:string)=>void;onPronounce:(letter:string)=>void;onMove:(id:string,x:number,y:number)=>void};
+function Draggable({tile,selected,onChoose,onPronounce,onMove}:DraggableProps){
  const [offset,setOffset]=useState({x:0,y:0});
  const pointer=useRef<{id:number;x:number;y:number;moved:boolean}|null>(null);
  const suppress=useRef(false);
@@ -25,7 +25,7 @@ function Draggable({tile,selected,onChoose,onMove}:DraggableProps){
   aria-label={'Letter '+tile.letter+'; select, drag, or move with keyboard'}
   aria-pressed={selected}
   style={{transform:offset.x||offset.y?`translate(${offset.x}px,${offset.y}px)`:undefined}}
-  onClick={()=>{if(suppress.current){suppress.current=false;return;}onChoose(tile.id);}}
+  onClick={()=>{if(suppress.current){suppress.current=false;return;}onPronounce(tile.letter);onChoose(tile.id);}}
   onDragStart={e=>{e.dataTransfer.setData('text/plain',tile.id);e.dataTransfer.effectAllowed='move';}}
   onPointerDown={e=>{if(e.pointerType!=='touch'&&e.pointerType!=='pen')return;pointer.current={id:e.pointerId,x:e.clientX,y:e.clientY,moved:false};e.currentTarget.setPointerCapture(e.pointerId);}}
   onPointerMove={e=>{const p=pointer.current;if(!p||p.id!==e.pointerId)return;const dx=e.clientX-p.x,dy=e.clientY-p.y;if(Math.abs(dx)+Math.abs(dy)>12)p.moved=true;if(p.moved)setOffset({x:dx,y:dy});}}
@@ -69,7 +69,17 @@ export function WebGame(){
  };
  const onDropSlot=(e:React.DragEvent<HTMLDivElement>,index:number)=>{e.preventDefault();const id=e.dataTransfer.getData('text/plain');if(state.tiles.some(tile=>tile.id===id))change({kind:'place',tileId:id,slot:index});};
  const onDropTray=(e:React.DragEvent<HTMLDivElement>)=>{e.preventDefault();const id=e.dataTransfer.getData('text/plain');if(state.tiles.some(tile=>tile.id===id))change({kind:'return',tileId:id});};
- const tileNode=(id:string)=>{const tile=state.tiles.find(t=>t.id===id)!;return <Draggable key={tile.id} tile={tile} selected={state.selected===id} onChoose={pick} onMove={moveDrop}/>;};
+ const pronounceLetter=(letter:string)=>{
+  // Browser speech says the alphabet letter name, never an improvised phoneme.
+  if(typeof window==='undefined'||!('speechSynthesis' in window)){
+   setFeedback('Letter '+letter+'. Device voice is unavailable.');return;
+  }
+  window.speechSynthesis.cancel();
+  const speech=new SpeechSynthesisUtterance(letter.toLowerCase());
+  speech.lang='en-US';speech.rate=.75;
+  window.speechSynthesis.speak(speech);
+ };
+ const tileNode=(id:string)=>{const tile=state.tiles.find(t=>t.id===id)!;return <Draggable key={tile.id} tile={tile} selected={state.selected===id} onChoose={pick} onPronounce={pronounceLetter} onMove={moveDrop}/>;};
  const next=()=>{
   if(step===LESSONS.length-1){patch({phase:'done'});return;}
   const nextStep=step+1;patch({step:nextStep,phase:'sound',choice:null,state:startWord(WORDS[nextStep])});
