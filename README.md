@@ -2,7 +2,7 @@
 
 A cross-platform spelling and phonics product, with React Native/Expo mobile learning and a Next.js browser preview/admin foundation.
 
-**Audio modes:** The app keeps support for verified human-recorded audio, which remains the preferred curriculum source. A separate, explicitly labelled **opt-in synthetic SSML/IPA voice** is now available when Azure Speech is configured. Synthesized speech must never be described as 100% human-recorded. See [SSML/IPA narration](docs/SSML_IPA_NARRATION.md).
+**Audio modes:** The app keeps support for verified human-recorded audio, which remains the preferred curriculum source. The updated zero-cost blueprint uses **reviewed static human recordings or openly generated audio assets** instead of paid cloud synthesis. No Azure call remains in the learner-facing playback route. Synthesized speech must never be described as 100% human-recorded. See [the free audio blueprint](docs/FREE_AUDIO_BLUEPRINT.md).
 
 ## Live web project
 

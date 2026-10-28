@@ -1,5 +1,5 @@
 import {getSpeechEntry} from './speech.ts';
-export type AudioProvenance='human-recorded'|'azure-ssml';
+export type AudioProvenance='human-recorded'|'local-open-source';
 export type AudioAsset={id:string;path:string;sha256:string;provenance:AudioProvenance;locale:'en-US';reviewed:boolean;license:string;version:number};
 export type AudioManifest={schema:1;assets:AudioAsset[]};
 /**
@@ -11,7 +11,7 @@ export function isValidAsset(asset:AudioAsset):boolean{
  return !!getSpeechEntry(asset.id)
   && /^\/audio\/v[1-9]\d*\/[A-Za-z0-9_-]+\.mp3$/.test(asset.path)
   && /^[a-f0-9]{64}$/.test(asset.sha256)
-  && ['human-recorded','azure-ssml'].includes(asset.provenance)
+  && ['human-recorded','local-open-source'].includes(asset.provenance)
   && asset.locale==='en-US'&&asset.reviewed===true
   && asset.license.trim().length>0
   && Number.isSafeInteger(asset.version)&&asset.version>=1;

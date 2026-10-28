@@ -7,7 +7,7 @@ import {humanVoiceClip} from './catalog';
 const WEB_BASE=(process.env.EXPO_PUBLIC_WORDPATH_WEB_URL||'https://game-for-kids-seven.vercel.app').replace(/\/$/,'');
 /**
  * Human audio is preferred whenever an approved clip exists.
- * Synthetic SSML is only used after explicit in-app opt-in.
+ * Approved locally generated audio is only used after explicit in-app opt-in.
  */
 export function HumanAudioButton({clipId,label,allowSynthetic=false,autoPlay=false}:{
  clipId:string;label:string;allowSynthetic?:boolean;autoPlay?:boolean;
@@ -39,9 +39,9 @@ export function HumanAudioButton({clipId,label,allowSynthetic=false,autoPlay=fal
    accessibilityLabel={available?label:label+', spoken audio unavailable'}
    accessibilityState={{disabled:!available}} disabled={!available} onPress={play}
    style={[styles.button,!available&&styles.disabled]}>
-   <Text style={styles.buttonText}>{available?'▶ '+label:allowSynthetic?'🔇 SSML narration unavailable':'🔇 Human recording pending'}</Text>
+   <Text style={styles.buttonText}>{available?'▶ '+label:allowSynthetic?'🔇 Saved narration unavailable':'🔇 Human recording pending'}</Text>
   </Pressable>
-  {synthetic?<Text style={styles.synthetic}>Synthetic SSML / IPA voice. Not a recording of a person. Requires Internet and a configured Azure Speech service.</Text>:null}
+  {synthetic?<Text style={styles.synthetic}>Locally generated audio, if approved. Not a recording of a person. Internet required until bundled offline.</Text>:null}
   {!available?<Text style={styles.explanation}>No playable audio for this activity. Read the on-screen instructions for now.</Text>:null}
   {status.error||error?<Text style={styles.error}>{error||'Recording failed to load. Please use the written text.'}</Text>:null}
  </View>;
